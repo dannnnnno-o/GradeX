@@ -92,7 +92,7 @@ public class Main {
         PendingTask mathHW = new PendingTask("Algebra Homework", 100, TaskType.ASSIGNMENT, "Do page 42", LocalDate.now().plusDays(2));
         PendingTask mathExam = new PendingTask("Midterm Exam", 100, TaskType.EXAM, "Chapters 1-5", LocalDate.now().plusDays(-1));
         PendingTask futureQuiz = new PendingTask("Pop Quiz", 10, TaskType.QUIZ, "Vectors", LocalDate.now().plusDays(5));
-        CompletedTask oldQuiz = new CompletedTask("Intro Quiz", 9.5, 10, TaskType.QUIZ);
+        CompletedTask oldQuiz = new CompletedTask("Intro Quiz", 9.5, 10, TaskType.QUIZ, "Vectors intro");
         math.addTask(mathHW);
         math.addTask(mathExam);
         math.addTask(futureQuiz);
@@ -102,7 +102,7 @@ public class Main {
 
         Subject science = new Subject("Science", new int[]{15, 15, 20, 50, 0});
         PendingTask lab = new PendingTask("Volcano Lab", 50, TaskType.ACTIVITY, "Build model", LocalDate.now().plusDays(4));
-        CompletedTask oldLab = new CompletedTask("Cell Lab", 48, 50, TaskType.ACTIVITY);
+        CompletedTask oldLab = new CompletedTask("Cell Lab", 48, 50, TaskType.ACTIVITY, "Microscope cells");
         science.addTask(lab);
         science.addTask(oldLab);
         science.setGrade(96.0);
@@ -114,11 +114,32 @@ public class Main {
         history.setGrade(88.5);
         dummySubjects.add(history);
 
+        // Right Panel
+        JPanel RightPanel = new JPanel();
+        RightPanel.setPreferredSize(new Dimension(WindowWidth / 4, WindowHeight));
+        RightPanel.setBackground(BackgroundColor);
+        CardLayout rightCardLayout = new CardLayout();
+        RightPanel.setLayout(rightCardLayout);
+
+        // Subject Details View instantiation (need reference for AddTask)
         SubjectDetailsView subjectDetailsView = new SubjectDetailsView();
+
+        // Right Panel - Default View
+        JPanel RightDefaultPanel = new JPanel();
+        RightDefaultPanel.setLayout(new BoxLayout(RightDefaultPanel, BoxLayout.Y_AXIS));
+        RightDefaultPanel.setBackground(BackgroundColor);
+        RightDefaultPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
+
+        // Right Panel - Subject Details View
+        JPanel RightSubjectPanel = new JPanel();
+        RightSubjectPanel.setLayout(new BoxLayout(RightSubjectPanel, BoxLayout.Y_AXIS));
+        RightSubjectPanel.setBackground(BackgroundColor);
+        RightSubjectPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
         
         SubjectsView subjectsView = new SubjectsView(dummySubjects, (sub) -> {
             subjectDetailsView.setSubject(sub);
             cardLayout.show(MidPanel, "DETAILS");
+            rightCardLayout.show(RightPanel, "SUBJECT");
         }, () -> {
             frame.repaint();
         });
@@ -128,13 +149,6 @@ public class Main {
         MidPanel.add(subjectsView, "SUBJECTS");
         MidPanel.add(calendarView, "CALENDAR");
         MidPanel.add(subjectDetailsView, "DETAILS");
-
-        // Right Panel
-        JPanel RightPanel = new JPanel();
-        RightPanel.setPreferredSize(new Dimension(WindowWidth / 4, WindowHeight));
-        RightPanel.setBackground(BackgroundColor);
-        RightPanel.setLayout(new BoxLayout(RightPanel, BoxLayout.Y_AXIS));
-        RightPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
 
         // Left Panel Components
         MyButton subject = new MyButton("Subjects");
@@ -151,16 +165,21 @@ public class Main {
         calendar.setPreferredSize(leftBtnSize);
         calendar.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-        subject.addActionListener(e -> cardLayout.show(MidPanel, "SUBJECTS"));
-        calendar.addActionListener(e -> cardLayout.show(MidPanel, "CALENDAR"));
+        // Left Panel Components Actions
+        subject.addActionListener(e -> {
+            cardLayout.show(MidPanel, "SUBJECTS");
+            rightCardLayout.show(RightPanel, "DEFAULT");
+        });
+        calendar.addActionListener(e -> {
+            cardLayout.show(MidPanel, "CALENDAR");
+            rightCardLayout.show(RightPanel, "DEFAULT");
+        });
 
         LeftPanel.add(subject);
         LeftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         LeftPanel.add(calendar);
 
-        // Mid Panel Components
-
-        // Right Panel Components
+        // Right Panel Components (Default)
         MyButton AddSubject = new MyButton("+ Add Subject");
 
         Dimension rightBtnSize = new Dimension((int) (RightPanelWidth * 0.6), 40);
@@ -179,7 +198,32 @@ public class Main {
             }
         });
         
-        RightPanel.add(AddSubject);
+        RightDefaultPanel.add(AddSubject);
+
+        // Right Panel Components (Subject)
+        MyButton AddTask = new MyButton("+ Add Task");
+        AddTask.setMinimumSize(rightBtnSize);
+        AddTask.setMaximumSize(rightBtnSize);
+        AddTask.setPreferredSize(rightBtnSize);
+        AddTask.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        AddTask.addActionListener(e -> {
+            Subject currentSubject = subjectDetailsView.getSubject();
+            if (currentSubject != null) {
+                AddTaskDialog dialog = new AddTaskDialog(frame, currentSubject);
+                dialog.setVisible(true);
+                Task created = dialog.getCreatedTask();
+                if (created != null) {
+                    currentSubject.addTask(created);
+                    subjectDetailsView.updateView(); // refresh tasks UI
+                }
+            }
+        });
+
+        RightSubjectPanel.add(AddTask);
+
+        RightPanel.add(RightDefaultPanel, "DEFAULT");
+        RightPanel.add(RightSubjectPanel, "SUBJECT");
 
         // Header.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         // LeftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
