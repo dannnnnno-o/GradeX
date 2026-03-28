@@ -87,10 +87,12 @@ public class Main {
 
         // --- Dummy Data Setup ---
         List<Subject> dummySubjects = new ArrayList<>();
-        
-        Subject math = new Subject("Mathematics", new int[]{20, 10, 30, 40, 0});
-        PendingTask mathHW = new PendingTask("Algebra Homework", 100, TaskType.ASSIGNMENT, "Do page 42", LocalDate.now().plusDays(2));
-        PendingTask mathExam = new PendingTask("Midterm Exam", 100, TaskType.EXAM, "Chapters 1-5", LocalDate.now().plusDays(-1));
+
+        Subject math = new Subject("Mathematics", new int[] { 20, 10, 30, 40, 0 });
+        PendingTask mathHW = new PendingTask("Algebra Homework", 100, TaskType.ASSIGNMENT, "Do page 42",
+                LocalDate.now().plusDays(2));
+        PendingTask mathExam = new PendingTask("Midterm Exam", 100, TaskType.EXAM, "Chapters 1-5",
+                LocalDate.now().plusDays(-1));
         PendingTask futureQuiz = new PendingTask("Pop Quiz", 10, TaskType.QUIZ, "Vectors", LocalDate.now().plusDays(5));
         CompletedTask oldQuiz = new CompletedTask("Intro Quiz", 9.5, 10, TaskType.QUIZ, "Vectors intro");
         math.addTask(mathHW);
@@ -100,16 +102,18 @@ public class Main {
         math.setGrade(95.0);
         dummySubjects.add(math);
 
-        Subject science = new Subject("Science", new int[]{15, 15, 20, 50, 0});
-        PendingTask lab = new PendingTask("Volcano Lab", 50, TaskType.ACTIVITY, "Build model", LocalDate.now().plusDays(4));
+        Subject science = new Subject("Science", new int[] { 15, 15, 20, 50, 0 });
+        PendingTask lab = new PendingTask("Volcano Lab", 50, TaskType.ACTIVITY, "Build model",
+                LocalDate.now().plusDays(4));
         CompletedTask oldLab = new CompletedTask("Cell Lab", 48, 50, TaskType.ACTIVITY, "Microscope cells");
         science.addTask(lab);
         science.addTask(oldLab);
         science.setGrade(96.0);
         dummySubjects.add(science);
-        
-        Subject history = new Subject("History", new int[]{10, 20, 30, 40, 0});
-        PendingTask essay = new PendingTask("WW2 Essay", 100, TaskType.PROJECT, "Write 5 pages", LocalDate.now().plusDays(10));
+
+        Subject history = new Subject("History", new int[] { 10, 20, 30, 40, 0 });
+        PendingTask essay = new PendingTask("WW2 Essay", 100, TaskType.PROJECT, "Write 5 pages",
+                LocalDate.now().plusDays(10));
         history.addTask(essay);
         history.setGrade(88.5);
         dummySubjects.add(history);
@@ -135,7 +139,7 @@ public class Main {
         RightSubjectPanel.setLayout(new BoxLayout(RightSubjectPanel, BoxLayout.Y_AXIS));
         RightSubjectPanel.setBackground(BackgroundColor);
         RightSubjectPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
-        
+
         SubjectsView subjectsView = new SubjectsView(dummySubjects, (sub) -> {
             subjectDetailsView.setSubject(sub);
             cardLayout.show(MidPanel, "DETAILS");
@@ -143,7 +147,7 @@ public class Main {
         }, () -> {
             frame.repaint();
         });
-        
+
         CalendarView calendarView = new CalendarView(dummySubjects);
 
         MidPanel.add(subjectsView, "SUBJECTS");
@@ -197,7 +201,7 @@ public class Main {
                 subjectsView.updateView();
             }
         });
-        
+
         RightDefaultPanel.add(AddSubject);
 
         // Right Panel Components (Subject)
