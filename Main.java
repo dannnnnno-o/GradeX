@@ -13,7 +13,7 @@ public class Main {
     @SuppressWarnings("unused")
     public static void main(String[] args) {
         // Window Properties
-        int WindowWidth = 1280;
+        int WindowWidth = 1366;
         int WindowHeight = 720;
         String BackgroundColorHex = "#e9e9e9";
         Color BackgroundColor = Color.decode(BackgroundColorHex);
@@ -23,7 +23,7 @@ public class Main {
         // Header
         int HeaderX = 0;
         int HeaderY = 0;
-        int HeaderWidth = 1280;
+        int HeaderWidth = WindowWidth;
         int HeaderHeight = 80;
 
         // Left Panel Properties

@@ -276,7 +276,7 @@ public class CalendarView extends JPanel {
                         RoundedPanel taskPanel = new RoundedPanel(10, Color.decode("#fafafa"), Color.decode("#e0e0e0"));
                         taskPanel.setLayout(new BorderLayout());
                         taskPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-                        taskPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+                        taskPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
                         
                         // Top segment: Title and Tag
                         JPanel topTask = new JPanel(new BorderLayout());
@@ -305,10 +305,16 @@ public class CalendarView extends JPanel {
                         dueLbl.setFont(new Font("Raleway", Font.PLAIN, 12));
                         dueLbl.setForeground(Color.DARK_GRAY);
                         
+                        JLabel subjectLbl = new JLabel("<html><div style='width:150px;'>Subject: " + sub.getName() + "</div></html>");
+                        subjectLbl.setFont(new Font("Raleway", Font.BOLD, 12));
+                        subjectLbl.setForeground(Color.decode("#555555"));
+
                         JLabel descLbl = new JLabel(pt.getDescription());
                         descLbl.setFont(new Font("Raleway", Font.PLAIN, 12));
                         descLbl.setForeground(Color.BLACK);
                         
+                        bodyTask.add(subjectLbl);
+                        bodyTask.add(Box.createRigidArea(new Dimension(0, 3)));
                         bodyTask.add(dueLbl);
                         bodyTask.add(Box.createRigidArea(new Dimension(0, 5)));
                         bodyTask.add(descLbl);

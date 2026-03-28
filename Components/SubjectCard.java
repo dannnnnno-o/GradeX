@@ -32,7 +32,7 @@ public class SubjectCard extends JPanel {
         nameLabel.setVerticalAlignment(SwingConstants.TOP);
 
         // Custom Pill shaped Remove Button
-        removeBtn = new JButton("X") {
+        removeBtn = new JButton("Remove") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -49,7 +49,7 @@ public class SubjectCard extends JPanel {
         removeBtn.setForeground(Color.decode("#d9534f")); // Darker red-pink text
         removeBtn.setFont(new Font("Raleway", Font.PLAIN, 12));
         removeBtn.setMargin(new Insets(0, 0, 0, 0));
-        removeBtn.setPreferredSize(new Dimension(40, 25));
+        removeBtn.setPreferredSize(new Dimension(70, 25));
 
         // To place removeBtn at the very top right, without getting stretched
         JPanel removeWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));

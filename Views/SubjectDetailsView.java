@@ -361,9 +361,17 @@ public class SubjectDetailsView extends JPanel {
         rightPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
 
         if (task instanceof PendingTask) {
+            PendingTask pTask = (PendingTask) task;
             PillButton editBtn = new PillButton("Edit", Color.decode("#efffbd"), Color.decode("#b8af51"));
-            PillButton removeBtn = new PillButton("X", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
+            PillButton removeBtn = new PillButton("Remove", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
             PillButton compBtn = new PillButton("Complete", Color.decode("#a5eaaf"), Color.decode("#27ae60"));
+
+            editBtn.addActionListener(e -> {
+                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+                EditTaskDialog dialog = new EditTaskDialog(parent, pTask);
+                dialog.setVisible(true);
+                updateView();
+            });
 
             removeBtn.addActionListener(e -> {
                 int resp = JOptionPane.showConfirmDialog(this, "Remove " + task.getName() + "?", "Remove Task",
@@ -377,20 +385,34 @@ public class SubjectDetailsView extends JPanel {
             });
 
             compBtn.addActionListener(e -> {
-                currentSubject.removeTask(task);
-                CompletedTask cTask = new CompletedTask(task.getName(), task.getMaxScore(), task.getMaxScore(),
-                        task.getType(), task.getDescription());
-                currentSubject.addTask(cTask);
-                if (onDataChanged != null)
-                    onDataChanged.run();
-                updateView();
+                String input = JOptionPane.showInputDialog(this,
+                    "Enter final score for '" + task.getName() + "' (Max: " + task.getMaxScore() + "):",
+                    "Complete Task", JOptionPane.PLAIN_MESSAGE);
+                if (input != null && !input.trim().isEmpty()) {
+                    try {
+                        double score = Double.parseDouble(input.trim());
+                        if (score < 0 || score > task.getMaxScore()) {
+                            JOptionPane.showMessageDialog(this, "Score must be between 0 and " + task.getMaxScore() + ".");
+                            return;
+                        }
+                        currentSubject.removeTask(task);
+                        CompletedTask cTask = new CompletedTask(task.getName(), score, task.getMaxScore(),
+                                task.getType(), task.getDescription());
+                        currentSubject.addTask(cTask);
+                        if (onDataChanged != null)
+                            onDataChanged.run();
+                        updateView();
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Invalid score. Please enter a number.");
+                    }
+                }
             });
 
             rightPanel.add(editBtn);
             rightPanel.add(removeBtn);
             rightPanel.add(compBtn);
         } else {
-            PillButton removeBtn = new PillButton("X", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
+            PillButton removeBtn = new PillButton("Remove", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
             removeBtn.addActionListener(e -> {
                 int resp = JOptionPane.showConfirmDialog(this, "Remove " + task.getName() + "?", "Remove Task",
                         JOptionPane.YES_NO_OPTION);

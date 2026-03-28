@@ -1,0 +1,23 @@
+User
+    id - primary key
+    username
+    password
+    Subjects[];
+    grade
+
+
+Subjects
+    id - primary key
+    name
+    tasks[]
+    rubrics
+
+Task
+    id - primary key
+    name - varchar 
+    score - int
+    maxScore - int
+    type - enum (pending, completed)
+    description - varchar
+    deadline - date
+

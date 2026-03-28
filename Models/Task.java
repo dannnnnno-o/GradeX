@@ -23,18 +23,43 @@ public abstract class Task {
         this.description = description;
     }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    public double getScore() { return score; }
-    public void setScore(double score) { this.score = score; }
-    
-    public double getMaxScore() { return maxScore; }
-    public void setMaxScore(double maxScore) { this.maxScore = maxScore; }
-    
-    public TaskType getType() { return type; }
-    public void setType(TaskType type) { this.type = type; }
-    
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    public void setScore(double score) {
+        this.score = score;
+    }
+
+    public double getMaxScore() {
+        return maxScore;
+    }
+
+    public void setMaxScore(double maxScore) {
+        this.maxScore = maxScore;
+    }
+
+    public TaskType getType() {
+        return type;
+    }
+
+    public void setType(TaskType type) {
+        this.type = type;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }
