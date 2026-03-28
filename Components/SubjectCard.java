@@ -27,7 +27,7 @@ public class SubjectCard extends JPanel {
 
         // Wrap title text so long titles break lines gracefully
         JLabel nameLabel = new JLabel("<html><div style='width: 140px;'>" + subject.getName() + "</div></html>");
-        nameLabel.setFont(new Font("Raleway", Font.BOLD, 22));
+        nameLabel.setFont(new Font("Raleway", Font.BOLD, 18));
         nameLabel.setForeground(Color.BLACK);
         nameLabel.setVerticalAlignment(SwingConstants.TOP);
 
@@ -48,7 +48,8 @@ public class SubjectCard extends JPanel {
         removeBtn.setBorderPainted(false);
         removeBtn.setForeground(Color.decode("#d9534f")); // Darker red-pink text
         removeBtn.setFont(new Font("Raleway", Font.PLAIN, 12));
-        removeBtn.setPreferredSize(new Dimension(80, 25));
+        removeBtn.setMargin(new Insets(0, 0, 0, 0));
+        removeBtn.setPreferredSize(new Dimension(40, 25));
 
         // To place removeBtn at the very top right, without getting stretched
         JPanel removeWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));

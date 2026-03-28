@@ -55,7 +55,7 @@ public class SubjectDetailsView extends JPanel {
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFont(new Font("Raleway", Font.PLAIN, 12));
-            setMargin(new Insets(2, 12, 2, 12));
+            setMargin(new Insets(2, 6, 2, 6));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
