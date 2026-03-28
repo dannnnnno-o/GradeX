@@ -148,7 +148,13 @@ public class Main {
             frame.repaint();
         });
 
-        CalendarView calendarView = new CalendarView(dummySubjects);
+        // Right Panel - Calendar View
+        JPanel RightCalendarPanel = new JPanel();
+        RightCalendarPanel.setLayout(new BoxLayout(RightCalendarPanel, BoxLayout.Y_AXIS));
+        RightCalendarPanel.setBackground(BackgroundColor);
+        RightCalendarPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
+
+        CalendarView calendarView = new CalendarView(dummySubjects, RightCalendarPanel, frame);
 
         MidPanel.add(subjectsView, "SUBJECTS");
         MidPanel.add(calendarView, "CALENDAR");
@@ -180,7 +186,7 @@ public class Main {
         });
         calendar.addActionListener(e -> {
             cardLayout.show(MidPanel, "CALENDAR");
-            rightCardLayout.show(RightPanel, "DEFAULT");
+            rightCardLayout.show(RightPanel, "CALENDAR");
             calendar.setActive(true);
             subject.setActive(false);
         });
@@ -235,6 +241,7 @@ public class Main {
 
         RightPanel.add(RightDefaultPanel, "DEFAULT");
         RightPanel.add(RightSubjectPanel, "SUBJECT");
+        RightPanel.add(RightCalendarPanel, "CALENDAR");
 
         // Header.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         // LeftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
