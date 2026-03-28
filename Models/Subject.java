@@ -26,6 +26,12 @@ public class Subject {
         this.tasks.get(index).add(task);
     }
     
+    public void removeTask(Task task) {
+        if(task == null || task.getType() == null) return;
+        int index = task.getType().ordinal();
+        this.tasks.get(index).remove(task);
+    }
+    
     public ArrayList<Task> getTasksByType(TaskType type) {
         return this.tasks.get(type.ordinal());
     }

@@ -10,6 +10,7 @@ public class SubjectDetailsView extends JPanel {
     private JPanel cardsPanel;
     private JPanel tasksListPanel;
     private Subject currentSubject;
+    private String currentFilter = "All Tasks"; // "All Tasks", "Pending", "Completed"
     
     public SubjectDetailsView() {
         setLayout(new BorderLayout());
@@ -37,11 +38,31 @@ public class SubjectDetailsView extends JPanel {
         
         mainPanel.add(Box.createVerticalStrut(25));
         
-        // Tasks List Label
+        // Tasks Header & Filter
+        JPanel tasksHeaderPanel = new JPanel();
+        tasksHeaderPanel.setLayout(new BoxLayout(tasksHeaderPanel, BoxLayout.X_AXIS));
+        tasksHeaderPanel.setBackground(Color.decode("#e9e9e9"));
+        tasksHeaderPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         JLabel tasksHeader = new JLabel("Tasks");
         tasksHeader.setFont(new Font("Raleway", Font.BOLD, 20));
-        tasksHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(tasksHeader);
+        tasksHeaderPanel.add(tasksHeader);
+        tasksHeaderPanel.add(Box.createHorizontalStrut(20));
+        
+        // Filter Buttons
+        String[] filters = {"All Tasks", "Pending", "Completed"};
+        for (String filter : filters) {
+            JButton filterBtn = new JButton(filter);
+            filterBtn.setFocusPainted(false);
+            filterBtn.addActionListener(e -> {
+                currentFilter = filter;
+                updateView();
+            });
+            tasksHeaderPanel.add(filterBtn);
+            tasksHeaderPanel.add(Box.createHorizontalStrut(5));
+        }
+        
+        mainPanel.add(tasksHeaderPanel);
         mainPanel.add(Box.createVerticalStrut(15));
         
         // Tasks List Container
@@ -63,6 +84,7 @@ public class SubjectDetailsView extends JPanel {
     
     public void setSubject(Subject subject) {
         this.currentSubject = subject;
+        this.currentFilter = "All Tasks"; // Reset filter
         updateView();
     }
     
@@ -89,6 +111,10 @@ public class SubjectDetailsView extends JPanel {
         // Update Tasks List
         tasksListPanel.removeAll();
         for(Task task : currentSubject.getAllTasks()) {
+            // Apply filtering logic
+            if (currentFilter.equals("Pending") && !(task instanceof PendingTask)) continue;
+            if (currentFilter.equals("Completed") && !(task instanceof CompletedTask)) continue;
+            
             JPanel taskPanel = createTaskRow(task);
             tasksListPanel.add(taskPanel);
             tasksListPanel.add(Box.createVerticalStrut(10));
@@ -125,7 +151,7 @@ public class SubjectDetailsView extends JPanel {
     private JPanel createTaskRow(Task task) {
         JPanel row = new JPanel(new BorderLayout());
         row.setBackground(Color.WHITE);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65)); // Give room for buttons
         row.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true),
             new EmptyBorder(10, 15, 10, 15)
@@ -147,7 +173,12 @@ public class SubjectDetailsView extends JPanel {
         infoPanel.add(descLbl);
         row.add(infoPanel, BorderLayout.WEST);
         
-        // Right side: Score or Deadline
+        // Center/Right side: Status Info & Actions
+        JPanel rightContentPanel = new JPanel();
+        rightContentPanel.setLayout(new BoxLayout(rightContentPanel, BoxLayout.X_AXIS));
+        rightContentPanel.setBackground(Color.WHITE);
+        
+        // Status Container
         JPanel statusPanel = new JPanel();
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
         statusPanel.setBackground(Color.WHITE);
@@ -177,8 +208,71 @@ public class SubjectDetailsView extends JPanel {
             statusPanel.add(scoreLbl);
         }
         
-        row.add(statusPanel, BorderLayout.EAST);
+        rightContentPanel.add(statusPanel);
+        rightContentPanel.add(Box.createHorizontalStrut(20));
+        
+        // Actions Container
+        JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        actionsPanel.setBackground(Color.WHITE);
+        
+        if (task instanceof PendingTask) {
+            PendingTask pTask = (PendingTask) task;
+            
+            JButton completeBtn = new JButton("Complete");
+            completeBtn.setFocusPainted(false);
+            completeBtn.addActionListener(e -> completeTask(pTask));
+            actionsPanel.add(completeBtn);
+
+            JButton editBtn = new JButton("Edit");
+            editBtn.setFocusPainted(false);
+            editBtn.addActionListener(e -> {
+                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+                EditTaskDialog dialog = new EditTaskDialog(parent, pTask);
+                dialog.setVisible(true);
+                updateView();
+            });
+            actionsPanel.add(editBtn);
+        }
+        
+        // Remove button is available for all
+        JButton removeBtn = new JButton("Remove");
+        removeBtn.setFocusPainted(false);
+        removeBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove this task?", "Remove Task", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                currentSubject.removeTask(task);
+                updateView();
+            }
+        });
+        actionsPanel.add(removeBtn);
+        
+        rightContentPanel.add(actionsPanel);
+        row.add(rightContentPanel, BorderLayout.EAST);
         
         return row;
+    }
+
+    private void completeTask(PendingTask task) {
+        String input = JOptionPane.showInputDialog(this, 
+            "Enter final score for '" + task.getName() + "' (Max: " + task.getMaxScore() + "):", 
+            "Complete Task", JOptionPane.PLAIN_MESSAGE);
+            
+        if (input != null && !input.trim().isEmpty()) {
+            try {
+                double score = Double.parseDouble(input.trim());
+                if (score < 0 || score > task.getMaxScore()) {
+                    JOptionPane.showMessageDialog(this, "Wait, score must be between 0 and " + task.getMaxScore() + ".");
+                    return;
+                }
+                
+                // Create CompletedTask and replace
+                CompletedTask cTask = new CompletedTask(task.getName(), score, task.getMaxScore(), task.getType(), task.getDescription());
+                currentSubject.removeTask(task);
+                currentSubject.addTask(cTask);
+                updateView();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid score. Please enter a number.");
+            }
+        }
     }
 }
