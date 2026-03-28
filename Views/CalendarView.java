@@ -1,11 +1,8 @@
 package Views;
 
 import Models.*;
-import Components.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -122,29 +119,6 @@ public class CalendarView extends JPanel {
         
         rightCalendarPanel.removeAll();
         
-        // Add Task Button
-        JPanel topActionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        topActionPanel.setOpaque(false);
-        topActionPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 15));
-        
-        MyButton addTaskBtn = new MyButton("+ Add Task");
-        addTaskBtn.setActive(true);
-        addTaskBtn.setPreferredSize(new Dimension(150, 40));
-        addTaskBtn.addActionListener(e -> {
-            // Simplified Add Task action for Calendar (you can assign default subject or improve dialog)
-            if (!dummySubjects.isEmpty()) {
-                AddTaskDialog dialog = new AddTaskDialog(frame, dummySubjects.get(0));
-                dialog.setVisible(true);
-                Task created = dialog.getCreatedTask();
-                if (created != null) {
-                    dummySubjects.get(0).addTask(created);
-                    updateCalendar();
-                    showTasksForDate(selectedDate);
-                }
-            }
-        });
-        topActionPanel.add(addTaskBtn);
-        
         // Tasks Details Display (White Box)
         RoundedPanel taskRightBox = new RoundedPanel(20, Color.WHITE, Color.decode("#d9d9d9"));
         taskRightBox.setLayout(new BorderLayout());
@@ -167,10 +141,9 @@ public class CalendarView extends JPanel {
 
         JPanel rightWrapper = new JPanel(new BorderLayout());
         rightWrapper.setOpaque(false);
-        rightWrapper.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 10)); // Top margin matches left side via topActionPanel
+        rightWrapper.setBorder(BorderFactory.createEmptyBorder(70, 0, 25, 10)); // Top margin increased to align with calendar box
         rightWrapper.add(taskRightBox, BorderLayout.CENTER);
 
-        rightCalendarPanel.add(topActionPanel);
         rightCalendarPanel.add(rightWrapper);
 
         updateCalendar();
@@ -219,27 +192,26 @@ public class CalendarView extends JPanel {
             final LocalDate date = currentYearMonth.atDay(i);
             
             // Build text with task indicators
-            int pendingCount = 0;
-            int activityCount = 0;
-            int projectCount = 0;
+            int[] typeCounts = new int[TaskType.values().length];
             
             for (Subject sub : dummySubjects) {
                 for (Task t : sub.getAllTasks()) {
                     if (t instanceof PendingTask) {
                         PendingTask pt = (PendingTask) t;
                         if (pt.getDeadline() != null && pt.getDeadline().isEqual(date)) {
-                            pendingCount++;
-                            if (pt.getType() == TaskType.ACTIVITY) activityCount++;
-                            if (pt.getType() == TaskType.PROJECT) projectCount++;
+                            typeCounts[pt.getType().ordinal()]++;
                         }
                     }
                 }
             }
             
             StringBuilder indicator = new StringBuilder();
-            if (activityCount > 0) indicator.append(activityCount).append("A ");
-            if (projectCount > 0) indicator.append(projectCount).append("P ");
-            if (pendingCount > 0 && activityCount == 0 && projectCount == 0) indicator.append(pendingCount).append(" Task");
+            for (TaskType type : TaskType.values()) {
+                int count = typeCounts[type.ordinal()];
+                if (count > 0) {
+                    indicator.append(count).append(type.name().substring(0, 1)).append(" ");
+                }
+            }
             
             String htmlText = "<html><center><div style='font-size:12px; padding-top:2px;'>" + i + "</div>";
             if (indicator.length() > 0) {

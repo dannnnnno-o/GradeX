@@ -10,6 +10,7 @@ C:\Users\aikhe\Desktop\ike\local\GradeX\Models\Task.java
 C:\Users\aikhe\Desktop\ike\local\GradeX\Models\TaskType.java
 C:\Users\aikhe\Desktop\ike\local\GradeX\Views\AddTaskDialog.java
 C:\Users\aikhe\Desktop\ike\local\GradeX\Views\CalendarView.java
+C:\Users\aikhe\Desktop\ike\local\GradeX\Views\EditTaskDialog.java
 C:\Users\aikhe\Desktop\ike\local\GradeX\Views\SubjectDetailsView.java
 C:\Users\aikhe\Desktop\ike\local\GradeX\Views\SubjectsView.java
 C:\Users\aikhe\Desktop\ike\local\GradeX\Main.java

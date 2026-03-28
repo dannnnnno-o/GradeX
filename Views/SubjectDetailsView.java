@@ -4,275 +4,408 @@ import Models.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubjectDetailsView extends JPanel {
     private JLabel titleLabel;
-    private JPanel cardsPanel;
-    private JPanel tasksListPanel;
+    private JLabel statusLabel;
+    private JPanel rubricsPanel;
+    private JPanel tasksContainerPanel;
     private Subject currentSubject;
-    private String currentFilter = "All Tasks"; // "All Tasks", "Pending", "Completed"
-    
+    private String currentFilter = "All Tasks";
+    private JPanel filterPanel;
+    private Runnable onDataChanged;
+
+    class RoundedPanel extends JPanel {
+        private int radius;
+        private Color borderColor;
+
+        public RoundedPanel(int radius, Color bgColor, Color borderColor) {
+            this.radius = radius;
+            this.borderColor = borderColor;
+            setBackground(bgColor);
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
+            if (borderColor != null) {
+                g2.setColor(borderColor);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
+            }
+            g2.dispose();
+        }
+    }
+
+    class PillButton extends JButton {
+        private Color bgColor;
+
+        public PillButton(String text, Color bg, Color fg) {
+            super(text);
+            this.bgColor = bg;
+            setForeground(fg);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFont(new Font("Raleway", Font.PLAIN, 12));
+            setMargin(new Insets(2, 12, 2, 12));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(bgColor);
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, getHeight() - 1, getHeight() - 1);
+            super.paintComponent(g2);
+            g2.dispose();
+        }
+    }
+
+    class FilterButton extends JButton {
+        private boolean active;
+
+        public FilterButton(String text, boolean active) {
+            super(text);
+            this.active = active;
+            setFont(new Font("Raleway", Font.PLAIN, 14));
+            setForeground(Color.BLACK);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setMargin(new Insets(5, 15, 5, 15));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        public void setActive(boolean active) {
+            this.active = active;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            if (active) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+                g2.dispose();
+            }
+            super.paintComponent(g);
+        }
+    }
+
     public SubjectDetailsView() {
         setLayout(new BorderLayout());
         setBackground(Color.decode("#e9e9e9"));
-        
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBackground(Color.decode("#e9e9e9"));
-        mainPanel.setBorder(new EmptyBorder(25, 25, 25, 25));
-        
-        // Subject Name Title
+
+        JPanel mainContent = new JPanel();
+        mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
+        mainContent.setBackground(Color.decode("#e9e9e9"));
+        mainContent.setBorder(new EmptyBorder(30, 40, 30, 40));
+
         titleLabel = new JLabel("Select a subject");
-        titleLabel.setFont(new Font("Raleway", Font.BOLD, 28));
+        titleLabel.setFont(new Font("Raleway", Font.BOLD, 36));
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(titleLabel);
-        
-        mainPanel.add(Box.createVerticalStrut(25));
-        
-        // Task Type Cards Container
-        cardsPanel = new JPanel();
-        cardsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        cardsPanel.setBackground(Color.decode("#e9e9e9"));
-        cardsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(cardsPanel);
-        
-        mainPanel.add(Box.createVerticalStrut(25));
-        
-        // Tasks Header & Filter
-        JPanel tasksHeaderPanel = new JPanel();
-        tasksHeaderPanel.setLayout(new BoxLayout(tasksHeaderPanel, BoxLayout.X_AXIS));
-        tasksHeaderPanel.setBackground(Color.decode("#e9e9e9"));
-        tasksHeaderPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JLabel tasksHeader = new JLabel("Tasks");
-        tasksHeader.setFont(new Font("Raleway", Font.BOLD, 20));
-        tasksHeaderPanel.add(tasksHeader);
-        tasksHeaderPanel.add(Box.createHorizontalStrut(20));
-        
-        // Filter Buttons
-        String[] filters = {"All Tasks", "Pending", "Completed"};
-        for (String filter : filters) {
-            JButton filterBtn = new JButton(filter);
-            filterBtn.setFocusPainted(false);
-            filterBtn.addActionListener(e -> {
-                currentFilter = filter;
-                updateView();
-            });
-            tasksHeaderPanel.add(filterBtn);
-            tasksHeaderPanel.add(Box.createHorizontalStrut(5));
-        }
-        
-        mainPanel.add(tasksHeaderPanel);
-        mainPanel.add(Box.createVerticalStrut(15));
-        
-        // Tasks List Container
-        tasksListPanel = new JPanel();
-        tasksListPanel.setLayout(new BoxLayout(tasksListPanel, BoxLayout.Y_AXIS));
-        tasksListPanel.setBackground(Color.decode("#e9e9e9"));
-        tasksListPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JScrollPane scrollPane = new JScrollPane(tasksListPanel);
+        mainContent.add(titleLabel);
+
+        statusLabel = new JLabel("Incomplete rubrics - Grade calculation paused");
+        statusLabel.setFont(new Font("Raleway", Font.PLAIN, 18));
+        statusLabel.setForeground(Color.decode("#f08080"));
+        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainContent.add(Box.createVerticalStrut(5));
+        mainContent.add(statusLabel);
+
+        mainContent.add(Box.createVerticalStrut(30));
+
+        rubricsPanel = new RoundedPanel(20, Color.decode("#fcfcfc"), Color.decode("#d9d9d9"));
+        rubricsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 25));
+        rubricsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rubricsPanel.setMaximumSize(new Dimension(800, 150));
+        mainContent.add(rubricsPanel);
+
+        mainContent.add(Box.createVerticalStrut(30));
+
+        filterPanel = new JPanel();
+        filterPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        filterPanel.setOpaque(false);
+        filterPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        RoundedPanel filterBg = new RoundedPanel(20, Color.decode("#dfdfdf"), null);
+        filterBg.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        filterBg.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+        FilterButton allBtn = new FilterButton("All Tasks", true);
+        FilterButton compBtn = new FilterButton("Completed", false);
+        FilterButton pendBtn = new FilterButton("Pending", false);
+
+        allBtn.addActionListener(e -> {
+            setFilter("All Tasks", allBtn, compBtn, pendBtn);
+        });
+        compBtn.addActionListener(e -> {
+            setFilter("Completed", compBtn, allBtn, pendBtn);
+        });
+        pendBtn.addActionListener(e -> {
+            setFilter("Pending", pendBtn, allBtn, compBtn);
+        });
+
+        filterBg.add(allBtn);
+        filterBg.add(compBtn);
+        filterBg.add(pendBtn);
+        filterPanel.add(filterBg);
+        mainContent.add(filterPanel);
+
+        mainContent.add(Box.createVerticalStrut(25));
+
+        tasksContainerPanel = new JPanel();
+        tasksContainerPanel.setLayout(new BoxLayout(tasksContainerPanel, BoxLayout.Y_AXIS));
+        tasksContainerPanel.setOpaque(false);
+        tasksContainerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        mainContent.add(tasksContainerPanel);
+
+        JScrollPane scrollPane = new JScrollPane(mainContent);
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(Color.decode("#e9e9e9"));
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        
-        mainPanel.add(scrollPane);
-        
-        add(mainPanel, BorderLayout.CENTER);
+
+        add(scrollPane, BorderLayout.CENTER);
     }
-    
-    public void setSubject(Subject subject) {
-        this.currentSubject = subject;
-        this.currentFilter = "All Tasks"; // Reset filter
+
+    private void setFilter(String filter, FilterButton activeBtn, FilterButton other1, FilterButton other2) {
+        currentFilter = filter;
+        activeBtn.setActive(true);
+        other1.setActive(false);
+        other2.setActive(false);
         updateView();
     }
-    
+
+    public void setSubject(Subject subject) {
+        this.currentSubject = subject;
+        updateView();
+    }
+
     public Subject getSubject() {
         return this.currentSubject;
     }
 
+    public void setOnDataChanged(Runnable onDataChanged) {
+        this.onDataChanged = onDataChanged;
+    }
+
     public void updateView() {
-        if(currentSubject == null) return;
-        
+        if (currentSubject == null)
+            return;
+
         titleLabel.setText(currentSubject.getName());
-        
-        // Update Cards
-        cardsPanel.removeAll();
+
+        rubricsPanel.removeAll();
         int[] rubrics = currentSubject.getRubrics();
         TaskType[] types = TaskType.values();
-        for(int i = 0; i < types.length; i++) {
-            if (rubrics[i] > 0) {
-                JPanel card = createCard(types[i].name(), rubrics[i] + "%");
-                cardsPanel.add(card);
+        for (int i = 0; i < types.length; i++) {
+            JPanel card = createRubricCard(
+                    types[i].name().substring(0, 1).toUpperCase() + types[i].name().substring(1).toLowerCase(),
+                    rubrics[i] + "%");
+            rubricsPanel.add(card);
+        }
+
+        tasksContainerPanel.removeAll();
+        for (int i = 0; i < types.length; i++) {
+            TaskType currentType = types[i];
+            List<Task> filteredTasks = new ArrayList<>();
+
+            for (Task t : currentSubject.getAllTasks()) {
+                if (t.getType() == currentType) {
+                    if (currentFilter.equals("All Tasks")) {
+                        filteredTasks.add(t);
+                    } else if (currentFilter.equals("Completed") && t instanceof CompletedTask) {
+                        filteredTasks.add(t);
+                    } else if (currentFilter.equals("Pending") && t instanceof PendingTask) {
+                        filteredTasks.add(t);
+                    }
+                }
+            }
+
+            if (!filteredTasks.isEmpty()) {
+                JPanel categoryPanel = createCategorySection(
+                        currentType.name().substring(0, 1).toUpperCase()
+                                + currentType.name().substring(1).toLowerCase(),
+                        filteredTasks);
+                tasksContainerPanel.add(categoryPanel);
+                tasksContainerPanel.add(Box.createVerticalStrut(25));
             }
         }
-        
-        // Update Tasks List
-        tasksListPanel.removeAll();
-        for(Task task : currentSubject.getAllTasks()) {
-            // Apply filtering logic
-            if (currentFilter.equals("Pending") && !(task instanceof PendingTask)) continue;
-            if (currentFilter.equals("Completed") && !(task instanceof CompletedTask)) continue;
-            
-            JPanel taskPanel = createTaskRow(task);
-            tasksListPanel.add(taskPanel);
-            tasksListPanel.add(Box.createVerticalStrut(10));
-        }
-        
+
         revalidate();
         repaint();
     }
-    
-    private JPanel createCard(String title, String weight) {
-        JPanel card = new JPanel();
+
+    private JPanel createRubricCard(String title, String weight) {
+        RoundedPanel card = new RoundedPanel(15, Color.decode("#fdfdfd"), Color.decode("#d9d9d9"));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true),
-            new EmptyBorder(15, 20, 15, 20)
-        ));
-        
+        card.setBorder(new EmptyBorder(15, 30, 15, 30));
+
         JLabel titleLbl = new JLabel(title);
-        titleLbl.setFont(new Font("Raleway", Font.BOLD, 14));
+        titleLbl.setFont(new Font("Raleway", Font.PLAIN, 18));
+        titleLbl.setForeground(Color.DARK_GRAY);
         titleLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         JLabel weightLbl = new JLabel(weight);
         weightLbl.setFont(new Font("Raleway", Font.PLAIN, 18));
         weightLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         card.add(titleLbl);
-        card.add(Box.createVerticalStrut(10));
+        card.add(Box.createVerticalStrut(5));
         card.add(weightLbl);
-        
+
         return card;
     }
-    
-    private JPanel createTaskRow(Task task) {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setBackground(Color.WHITE);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65)); // Give room for buttons
-        row.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true),
-            new EmptyBorder(10, 15, 10, 15)
-        ));
-        
-        // Left side: Task name and description
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setBackground(Color.WHITE);
-        
-        JLabel nameLbl = new JLabel(task.getName());
-        nameLbl.setFont(new Font("Raleway", Font.BOLD, 16));
-        
-        JLabel descLbl = new JLabel(task.getType().name() + " | " + (task.getDescription() != null ? task.getDescription() : ""));
-        descLbl.setFont(new Font("Raleway", Font.PLAIN, 12));
-        descLbl.setForeground(Color.DARK_GRAY);
-        
-        infoPanel.add(nameLbl);
-        infoPanel.add(descLbl);
-        row.add(infoPanel, BorderLayout.WEST);
-        
-        // Center/Right side: Status Info & Actions
-        JPanel rightContentPanel = new JPanel();
-        rightContentPanel.setLayout(new BoxLayout(rightContentPanel, BoxLayout.X_AXIS));
-        rightContentPanel.setBackground(Color.WHITE);
-        
-        // Status Container
-        JPanel statusPanel = new JPanel();
-        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
-        statusPanel.setBackground(Color.WHITE);
-        
-        if (task instanceof PendingTask) {
-            PendingTask pt = (PendingTask) task;
-            JLabel statusLbl = new JLabel("Pending");
-            statusLbl.setForeground(Color.decode("#e67e22")); // Orange
-            statusLbl.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            
-            JLabel deadlineLbl = new JLabel("Due: " + pt.getDeadline().toString());
-            deadlineLbl.setFont(new Font("Raleway", Font.PLAIN, 12));
-            deadlineLbl.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            
-            statusPanel.add(statusLbl);
-            statusPanel.add(deadlineLbl);
-        } else if (task instanceof CompletedTask) {
-            JLabel statusLbl = new JLabel("Completed");
-            statusLbl.setForeground(Color.decode("#27ae60")); // Green
-            statusLbl.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            
-            JLabel scoreLbl = new JLabel("Score: " + task.getScore() + " / " + task.getMaxScore());
-            scoreLbl.setFont(new Font("Raleway", Font.PLAIN, 12));
-            scoreLbl.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            
-            statusPanel.add(statusLbl);
-            statusPanel.add(scoreLbl);
-        }
-        
-        rightContentPanel.add(statusPanel);
-        rightContentPanel.add(Box.createHorizontalStrut(20));
-        
-        // Actions Container
-        JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        actionsPanel.setBackground(Color.WHITE);
-        
-        if (task instanceof PendingTask) {
-            PendingTask pTask = (PendingTask) task;
-            
-            JButton completeBtn = new JButton("Complete");
-            completeBtn.setFocusPainted(false);
-            completeBtn.addActionListener(e -> completeTask(pTask));
-            actionsPanel.add(completeBtn);
 
-            JButton editBtn = new JButton("Edit");
-            editBtn.setFocusPainted(false);
-            editBtn.addActionListener(e -> {
-                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
-                EditTaskDialog dialog = new EditTaskDialog(parent, pTask);
-                dialog.setVisible(true);
-                updateView();
-            });
-            actionsPanel.add(editBtn);
+    private JPanel createCategorySection(String title, List<Task> tasks) {
+        RoundedPanel section = new RoundedPanel(15, Color.decode("#fcfcfc"), Color.decode("#d9d9d9"));
+        section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+        section.setAlignmentX(Component.LEFT_ALIGNMENT);
+        section.setBorder(new EmptyBorder(25, 25, 25, 25));
+        section.setMaximumSize(new Dimension(800, Integer.MAX_VALUE));
+
+        JLabel titleLbl = new JLabel(title);
+        titleLbl.setFont(new Font("Raleway", Font.BOLD, 22));
+        titleLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        section.add(titleLbl);
+        section.add(Box.createVerticalStrut(20));
+
+        for (Task task : tasks) {
+            section.add(createTaskRow(task));
+            section.add(Box.createVerticalStrut(15));
         }
-        
-        // Remove button is available for all
-        JButton removeBtn = new JButton("Remove");
-        removeBtn.setFocusPainted(false);
-        removeBtn.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove this task?", "Remove Task", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                currentSubject.removeTask(task);
-                updateView();
-            }
-        });
-        actionsPanel.add(removeBtn);
-        
-        rightContentPanel.add(actionsPanel);
-        row.add(rightContentPanel, BorderLayout.EAST);
-        
-        return row;
+
+        return section;
     }
 
-    private void completeTask(PendingTask task) {
-        String input = JOptionPane.showInputDialog(this, 
-            "Enter final score for '" + task.getName() + "' (Max: " + task.getMaxScore() + "):", 
-            "Complete Task", JOptionPane.PLAIN_MESSAGE);
-            
-        if (input != null && !input.trim().isEmpty()) {
-            try {
-                double score = Double.parseDouble(input.trim());
-                if (score < 0 || score > task.getMaxScore()) {
-                    JOptionPane.showMessageDialog(this, "Wait, score must be between 0 and " + task.getMaxScore() + ".");
-                    return;
-                }
-                
-                // Create CompletedTask and replace
-                CompletedTask cTask = new CompletedTask(task.getName(), score, task.getMaxScore(), task.getType(), task.getDescription());
-                currentSubject.removeTask(task);
-                currentSubject.addTask(cTask);
-                updateView();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Invalid score. Please enter a number.");
-            }
+    private JPanel createTaskRow(Task task) {
+        RoundedPanel row = new RoundedPanel(15, Color.WHITE, Color.decode("#d9d9d9"));
+        row.setLayout(new BorderLayout());
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setBorder(new EmptyBorder(15, 20, 15, 20));
+
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setOpaque(false);
+
+        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        topRow.setOpaque(false);
+        topRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel nameLbl = new JLabel(task.getName());
+        nameLbl.setFont(new Font("Raleway", Font.BOLD, 18));
+        topRow.add(nameLbl);
+
+        if (task instanceof CompletedTask) {
+            JLabel pill = new JLabel("Completed");
+            pill.setFont(new Font("Raleway", Font.PLAIN, 11));
+            pill.setForeground(Color.decode("#27ae60"));
+            pill.setOpaque(true);
+            pill.setBackground(Color.decode("#a5eaaf"));
+            pill.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+            topRow.add(pill);
+        } else {
+            JLabel pill = new JLabel("Pending");
+            pill.setFont(new Font("Raleway", Font.PLAIN, 11));
+            pill.setForeground(Color.decode("#b8af51"));
+            pill.setOpaque(true);
+            pill.setBackground(Color.decode("#efffbd"));
+            pill.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+            topRow.add(pill);
         }
+
+        leftPanel.add(topRow);
+        leftPanel.add(Box.createVerticalStrut(5));
+
+        JLabel descLbl = new JLabel(task.getDescription() != null ? task.getDescription() : "");
+        descLbl.setFont(new Font("Raleway", Font.PLAIN, 13));
+        descLbl.setForeground(Color.GRAY);
+        descLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        leftPanel.add(descLbl);
+        leftPanel.add(Box.createVerticalStrut(5));
+
+        if (task instanceof CompletedTask) {
+            JLabel scoreLbl = new JLabel("Grade: " + String.format("%.2f", task.getScore()));
+            scoreLbl.setFont(new Font("Raleway", Font.PLAIN, 14));
+            scoreLbl.setForeground(Color.DARK_GRAY);
+            scoreLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftPanel.add(scoreLbl);
+        } else {
+            PendingTask pt = (PendingTask) task;
+            JLabel deadlineLbl = new JLabel(
+                    "Deadline: " + pt.getDeadline().format(DateTimeFormatter.ofPattern("M/d/yyyy")));
+            deadlineLbl.setFont(new Font("Raleway", Font.PLAIN, 14));
+            deadlineLbl.setForeground(Color.DARK_GRAY);
+            deadlineLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftPanel.add(deadlineLbl);
+        }
+
+        row.add(leftPanel, BorderLayout.WEST);
+
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightPanel.setOpaque(false);
+        rightPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
+
+        if (task instanceof PendingTask) {
+            PillButton editBtn = new PillButton("Edit", Color.decode("#efffbd"), Color.decode("#b8af51"));
+            PillButton removeBtn = new PillButton("X", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
+            PillButton compBtn = new PillButton("Complete", Color.decode("#a5eaaf"), Color.decode("#27ae60"));
+
+            removeBtn.addActionListener(e -> {
+                int resp = JOptionPane.showConfirmDialog(this, "Remove " + task.getName() + "?", "Remove Task",
+                        JOptionPane.YES_NO_OPTION);
+                if (resp == JOptionPane.YES_OPTION) {
+                    currentSubject.removeTask(task);
+                    if (onDataChanged != null)
+                        onDataChanged.run();
+                    updateView();
+                }
+            });
+
+            compBtn.addActionListener(e -> {
+                currentSubject.removeTask(task);
+                CompletedTask cTask = new CompletedTask(task.getName(), task.getMaxScore(), task.getMaxScore(),
+                        task.getType(), task.getDescription());
+                currentSubject.addTask(cTask);
+                if (onDataChanged != null)
+                    onDataChanged.run();
+                updateView();
+            });
+
+            rightPanel.add(editBtn);
+            rightPanel.add(removeBtn);
+            rightPanel.add(compBtn);
+        } else {
+            PillButton removeBtn = new PillButton("X", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
+            removeBtn.addActionListener(e -> {
+                int resp = JOptionPane.showConfirmDialog(this, "Remove " + task.getName() + "?", "Remove Task",
+                        JOptionPane.YES_NO_OPTION);
+                if (resp == JOptionPane.YES_OPTION) {
+                    currentSubject.removeTask(task);
+                    if (onDataChanged != null)
+                        onDataChanged.run();
+                    updateView();
+                }
+            });
+            rightPanel.add(removeBtn);
+        }
+
+        row.add(rightPanel, BorderLayout.EAST);
+
+        return row;
     }
 }

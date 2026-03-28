@@ -29,13 +29,13 @@ public class Main {
         // Left Panel Properties
         int LeftPanelX = 0;
         int LeftPanelY = HeaderHeight;
-        int LeftPanelWidth = (int) Math.round(WindowWidth * 0.25);
+        int LeftPanelWidth = (int) Math.round(WindowWidth * 0.2);
         int LeftPanelHeight = WindowHeight;
 
         // Mid Panel Properties
         int MidPanelX = LeftPanelWidth;
         int MidPanelY = HeaderHeight;
-        int MidPanelWidth = (int) Math.round(WindowWidth * 0.5);
+        int MidPanelWidth = (int) Math.round(WindowWidth * 0.55);
         int MidPanelHeight = WindowHeight;
 
         // Right Panel Properties

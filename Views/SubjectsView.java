@@ -40,7 +40,7 @@ public class SubjectsView extends JPanel {
         headerPanel.add(subtitle);
         add(headerPanel, BorderLayout.NORTH);
 
-        cardsPanel = new JPanel(new GridLayout(0, 2, 15, 15));
+        cardsPanel = new JPanel(new GridLayout(0, 3, 15, 15));
         cardsPanel.setBackground(Color.decode("#e9e9e9"));
         cardsPanel.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
 
