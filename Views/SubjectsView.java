@@ -20,21 +20,55 @@ public class SubjectsView extends JPanel {
 
         setLayout(new BorderLayout());
         setBackground(Color.decode("#e9e9e9"));
-        
-        JLabel title = new JLabel("Subjects List", SwingConstants.CENTER);
-        title.setFont(new Font("Raleway", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        add(title, BorderLayout.NORTH);
-        
-        // Use FlowLayout aligned to left, mimicking a wrap layout if it wraps
-        cardsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+
+        // Header Panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBackground(Color.decode("#e9e9e9"));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(30, 25, 10, 25));
+
+        JLabel title = new JLabel("Subjects");
+        title.setFont(new Font("Raleway", Font.BOLD, 32));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subtitle = new JLabel("Manage your academic subjects");
+        subtitle.setFont(new Font("Raleway", Font.PLAIN, 16));
+        subtitle.setForeground(Color.decode("#666666"));
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        headerPanel.add(title);
+        headerPanel.add(subtitle);
+        add(headerPanel, BorderLayout.NORTH);
+
+        cardsPanel = new JPanel(new GridLayout(0, 2, 15, 15));
         cardsPanel.setBackground(Color.decode("#e9e9e9"));
-        
-        JScrollPane scrollPane = new JScrollPane(cardsPanel);
+        cardsPanel.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+
+        // Use an inline class that explicitly implements Scrollable to prevent horizontal overflow in JScrollPane
+        class ScrollablePanel extends JPanel implements Scrollable {
+            public ScrollablePanel(LayoutManager layout) { super(layout); }
+            @Override
+            public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+            @Override
+            public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) { return 16; }
+            @Override
+            public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) { return 50; }
+            @Override
+            public boolean getScrollableTracksViewportWidth() { return true; }
+            @Override
+            public boolean getScrollableTracksViewportHeight() { return false; }
+        }
+
+        // Wrapper to keep the grid at the top, implementing Scrollable to fit viewport width
+        JPanel scrollContent = new ScrollablePanel(new BorderLayout());
+        scrollContent.setBackground(Color.decode("#e9e9e9"));
+        scrollContent.add(cardsPanel, BorderLayout.NORTH);
+
+        JScrollPane scrollPane = new JScrollPane(scrollContent);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
-        
+
         updateView();
     }
 
@@ -42,22 +76,24 @@ public class SubjectsView extends JPanel {
         cardsPanel.removeAll();
         for (Subject sub : subjects) {
             SubjectCard card = new SubjectCard(sub);
-            
+
             card.getRemoveBtn().addActionListener(e -> {
-                int resp = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove " + sub.getName() + "?", "Remove Subject", JOptionPane.YES_NO_OPTION);
+                int resp = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove " + sub.getName() + "?",
+                        "Remove Subject", JOptionPane.YES_NO_OPTION);
                 if (resp == JOptionPane.YES_OPTION) {
                     subjects.remove(sub);
-                    if (onDataChanged != null) onDataChanged.run();
+                    if (onDataChanged != null)
+                        onDataChanged.run();
                     updateView();
                 }
             });
-            
+
             card.getViewDetailsBtn().addActionListener(e -> {
                 if (onSubjectViewDetails != null) {
                     onSubjectViewDetails.accept(sub);
                 }
             });
-            
+
             cardsPanel.add(card);
         }
         cardsPanel.revalidate();

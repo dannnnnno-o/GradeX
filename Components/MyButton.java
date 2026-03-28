@@ -19,11 +19,24 @@ public class MyButton extends JButton{
         this.text = text;
         setText(text);
         setBackground(BackgroundColor);
-        setMargin(new Insets(5, 5,5, 5));
-        setBorder(new RoundedBorder(text, radius));
+        setForeground(Color.BLACK);
+        setMargin(new Insets(5, 5, 5, 5));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         setFont(new Font("Raleway", Font.BOLD, 18));
         setContentAreaFilled(false);
-        setBorderPainted(true);
+        setBorderPainted(false);
+        setFocusPainted(false);
+    }
+
+    public void setActive(boolean active) {
+        if (active) {
+            setBackground(Color.decode("#222222"));
+            setForeground(Color.WHITE);
+        } else {
+            setBackground(Color.decode("#c9c9c9"));
+            setForeground(Color.BLACK);
+        }
+        repaint();
     }
 
     @Override

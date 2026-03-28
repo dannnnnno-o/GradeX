@@ -169,14 +169,20 @@ public class Main {
         calendar.setPreferredSize(leftBtnSize);
         calendar.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
+        subject.setActive(true); // Default active page
+
         // Left Panel Components Actions
         subject.addActionListener(e -> {
             cardLayout.show(MidPanel, "SUBJECTS");
             rightCardLayout.show(RightPanel, "DEFAULT");
+            subject.setActive(true);
+            calendar.setActive(false);
         });
         calendar.addActionListener(e -> {
             cardLayout.show(MidPanel, "CALENDAR");
             rightCardLayout.show(RightPanel, "DEFAULT");
+            calendar.setActive(true);
+            subject.setActive(false);
         });
 
         LeftPanel.add(subject);
@@ -185,6 +191,7 @@ public class Main {
 
         // Right Panel Components (Default)
         MyButton AddSubject = new MyButton("+ Add Subject");
+        AddSubject.setActive(true); // Dark style to match design
 
         Dimension rightBtnSize = new Dimension((int) (RightPanelWidth * 0.6), 40);
         AddSubject.setMinimumSize(rightBtnSize);
