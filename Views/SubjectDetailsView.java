@@ -219,6 +219,7 @@ public class SubjectDetailsView extends JPanel {
         }
 
         tasksContainerPanel.removeAll();
+        boolean hasAnyTasks = false;
         for (int i = 0; i < types.length; i++) {
             TaskType currentType = types[i];
             List<Task> filteredTasks = new ArrayList<>();
@@ -236,6 +237,7 @@ public class SubjectDetailsView extends JPanel {
             }
 
             if (!filteredTasks.isEmpty()) {
+                hasAnyTasks = true;
                 JPanel categoryPanel = createCategorySection(
                         currentType.name().substring(0, 1).toUpperCase()
                                 + currentType.name().substring(1).toLowerCase(),
@@ -243,6 +245,15 @@ public class SubjectDetailsView extends JPanel {
                 tasksContainerPanel.add(categoryPanel);
                 tasksContainerPanel.add(Box.createVerticalStrut(25));
             }
+        }
+
+        if (!hasAnyTasks) {
+            JLabel emptyMsg = new JLabel("No tasks found for this filter. Time to add some!");
+            emptyMsg.setFont(new Font("Raleway", Font.PLAIN, 18));
+            emptyMsg.setForeground(Color.GRAY);
+            emptyMsg.setAlignmentX(Component.LEFT_ALIGNMENT);
+            emptyMsg.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+            tasksContainerPanel.add(emptyMsg);
         }
 
         revalidate();

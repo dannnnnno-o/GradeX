@@ -59,10 +59,19 @@ public class SubjectsView extends JPanel {
             public boolean getScrollableTracksViewportHeight() { return false; }
         }
 
-        // Wrapper to keep the grid at the top, implementing Scrollable to fit viewport width
+        // Wrapper to keep the grid at the top
         JPanel scrollContent = new ScrollablePanel(new BorderLayout());
         scrollContent.setBackground(Color.decode("#e9e9e9"));
         scrollContent.add(cardsPanel, BorderLayout.NORTH);
+
+        // Empty state message in the CENTER of the scroll content to keep it centered in the viewport
+        JLabel emptyMsg = new JLabel("No subjects added yet. Click '+ Add Subject' to get started!");
+        emptyMsg.setFont(new Font("Raleway", Font.PLAIN, 18));
+        emptyMsg.setForeground(Color.GRAY);
+        emptyMsg.setHorizontalAlignment(SwingConstants.CENTER);
+        emptyMsg.setName("EmptyMessage"); // For identification
+        emptyMsg.setVisible(false);
+        scrollContent.add(emptyMsg, BorderLayout.CENTER);
 
         JScrollPane scrollPane = new JScrollPane(scrollContent);
         scrollPane.setBorder(null);
@@ -74,27 +83,53 @@ public class SubjectsView extends JPanel {
 
     public void updateView() {
         cardsPanel.removeAll();
-        for (Subject sub : subjects) {
-            SubjectCard card = new SubjectCard(sub);
-
-            card.getRemoveBtn().addActionListener(e -> {
-                int resp = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove " + sub.getName() + "?",
-                        "Remove Subject", JOptionPane.YES_NO_OPTION);
-                if (resp == JOptionPane.YES_OPTION) {
-                    subjects.remove(sub);
-                    if (onDataChanged != null)
-                        onDataChanged.run();
-                    updateView();
+        
+        // Find the empty message label in the parent container
+        JLabel emptyMsg = null;
+        Container parent = cardsPanel.getParent();
+        if (parent != null) {
+            for (Component c : parent.getComponents()) {
+                if (c instanceof JLabel && "EmptyMessage".equals(c.getName())) {
+                    emptyMsg = (JLabel) c;
+                    break;
                 }
-            });
+            }
+        }
 
-            card.getViewDetailsBtn().addActionListener(e -> {
-                if (onSubjectViewDetails != null) {
-                    onSubjectViewDetails.accept(sub);
-                }
-            });
+        if (subjects.isEmpty()) {
+            if (emptyMsg != null) emptyMsg.setVisible(true);
+            cardsPanel.setVisible(false);
+        } else {
+            if (emptyMsg != null) emptyMsg.setVisible(false);
+            cardsPanel.setVisible(true);
+            cardsPanel.setLayout(new GridLayout(0, 2, 15, 15));
+            for (Subject sub : subjects) {
+                SubjectCard card = new SubjectCard(sub);
 
-            cardsPanel.add(card);
+                card.getRemoveBtn().addActionListener(e -> {
+                    int resp = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove " + sub.getName() + "?",
+                            "Remove Subject", JOptionPane.YES_NO_OPTION);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        subjects.remove(sub);
+                        if (onDataChanged != null)
+                            onDataChanged.run();
+                        updateView();
+                    }
+                });
+
+                card.getViewDetailsBtn().addActionListener(e -> {
+                    if (onSubjectViewDetails != null) {
+                        onSubjectViewDetails.accept(sub);
+                    }
+                });
+
+                cardsPanel.add(card);
+            }
+        }
+        
+        if (parent != null) {
+            parent.revalidate();
+            parent.repaint();
         }
         cardsPanel.revalidate();
         cardsPanel.repaint();

@@ -2,10 +2,14 @@ package Models;
 import java.util.ArrayList;
 
 public class Subject {
+    private int id;
     private String name;
     private ArrayList<ArrayList<Task>> tasks;
     private int[] rubrics;
     private double grade;
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public Subject(String name, int[] rubrics) {
         this.name = name;

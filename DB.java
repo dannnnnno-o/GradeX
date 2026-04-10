@@ -106,6 +106,7 @@ public class DB {
                 rubrics[i] = rubricsTyped[i];
 
             Subject sub = new Subject(subResult.getString("name"), rubrics);
+            sub.setId(subId);
             sub.setGrade(subResult.getDouble("grade"));
 
             // Load tasks for this subject
@@ -155,8 +156,12 @@ public class DB {
                 return;
             int userId = result.getInt("id");
 
-            // Delete current data to refresh (simple sync strategy)
-            query = "DELETE FROM subjects WHERE user_id=?";
+            // Delete subjects that are no longer in the user's list
+            StringBuilder idList = new StringBuilder("-1");
+            for (Subject s : user.getSubjects()) {
+                if (s.getId() > 0) idList.append(",").append(s.getId());
+            }
+            query = "DELETE FROM subjects WHERE user_id=? AND id NOT IN (" + idList.toString() + ")";
             PreparedStatement delStmt = connection.prepareStatement(query);
             delStmt.setInt(1, userId);
             delStmt.executeUpdate();
@@ -164,24 +169,37 @@ public class DB {
 
             // Save subjects and tasks
             for (Subject s : user.getSubjects()) {
-                query = "INSERT INTO subjects (user_id, name, rubrics, grade) VALUES (?, ?, ?, ?) RETURNING id";
-                PreparedStatement insSub = connection.prepareStatement(query);
-                insSub.setInt(1, userId);
-                insSub.setString(2, s.getName());
-
-                Integer[] rubrics = new Integer[s.getRubrics().length];
-                for (int i = 0; i < rubrics.length; i++)
-                    rubrics[i] = s.getRubrics()[i];
-                Array rbArray = connection.createArrayOf("INTEGER", rubrics);
-                insSub.setArray(3, rbArray);
-                insSub.setDouble(4, s.getGrade());
-
-                ResultSet insRes = insSub.executeQuery();
-                if (insRes.next()) {
-                    int subId = insRes.getInt("id");
-                    saveTasks(s, subId);
+                if (s.getId() > 0) {
+                    // Update existing
+                    query = "UPDATE subjects SET name=?, rubrics=?, grade=? WHERE id=?";
+                    PreparedStatement updSub = connection.prepareStatement(query);
+                    updSub.setString(1, s.getName());
+                    Integer[] rubrics = new Integer[s.getRubrics().length];
+                    for (int i = 0; i < rubrics.length; i++) rubrics[i] = s.getRubrics()[i];
+                    Array rbArray = connection.createArrayOf("INTEGER", rubrics);
+                    updSub.setArray(2, rbArray);
+                    updSub.setDouble(3, s.getGrade());
+                    updSub.setInt(4, s.getId());
+                    updSub.executeUpdate();
+                    updSub.close();
+                } else {
+                    // Insert new
+                    query = "INSERT INTO subjects (user_id, name, rubrics, grade) VALUES (?, ?, ?, ?) RETURNING id";
+                    PreparedStatement insSub = connection.prepareStatement(query);
+                    insSub.setInt(1, userId);
+                    insSub.setString(2, s.getName());
+                    Integer[] rubrics = new Integer[s.getRubrics().length];
+                    for (int i = 0; i < rubrics.length; i++) rubrics[i] = s.getRubrics()[i];
+                    Array rbArray = connection.createArrayOf("INTEGER", rubrics);
+                    insSub.setArray(3, rbArray);
+                    insSub.setDouble(4, s.getGrade());
+                    ResultSet insRes = insSub.executeQuery();
+                    if (insRes.next()) {
+                        s.setId(insRes.getInt("id"));
+                    }
+                    insSub.close();
                 }
-                insSub.close();
+                saveTasks(s, s.getId());
             }
 
         } catch (SQLException e) {
@@ -190,10 +208,17 @@ public class DB {
     }
 
     private void saveTasks(Subject subject, int subjectId) throws SQLException {
+        // Simple strategy for tasks: delete and re-insert for this subject
+        // This is okay as long as task IDs aren't referenced elsewhere
+        query = "DELETE FROM tasks WHERE subject_id=?";
+        PreparedStatement delTasks = connection.prepareStatement(query);
+        delTasks.setInt(1, subjectId);
+        delTasks.executeUpdate();
+        delTasks.close();
+
         for (Task t : subject.getAllTasks()) {
             query = "INSERT INTO tasks (subject_id, name, type, details, target_score, actual_score, due_date, is_completed) "
-                    +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement insTask = connection.prepareStatement(query);
             insTask.setInt(1, subjectId);
             insTask.setString(2, t.getName());
