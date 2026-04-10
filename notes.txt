@@ -1,23 +1,6 @@
-User
-    id - primary key
-    username
-    password
-    Subjects[];
-    grade
+tasks
 
-
-Subjects
-    id - primary key
-    name
-    tasks[]
-    rubrics
-
-Task
-    id - primary key
-    name - varchar 
-    score - int
-    maxScore - int
-    type - enum (pending, completed)
-    description - varchar
-    deadline - date
-
+proposal
+    deadline-based task sorting
+    11-point system
+    date-validation
