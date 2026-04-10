@@ -215,6 +215,8 @@ public class Main {
         int RightPanelWidth = frame.getWidth() / 4;
         Dimension rightBtnSize = new Dimension((int) (RightPanelWidth * 0.6), 40);
 
+        NotificationView notificationView = new NotificationView(currentUser.getSubjects());
+
         MyButton AddSubject = new MyButton("+ Add Subject");
         AddSubject.setActive(true);
         AddSubject.setMinimumSize(rightBtnSize);
@@ -228,10 +230,14 @@ public class Main {
             if (created != null) {
                 currentUser.addSubject(created);
                 db.saveUser(currentUser);
+                notificationView.updateView();
                 if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
             }
         });
         RightDefaultPanel.add(AddSubject);
+        RightDefaultPanel.add(Box.createVerticalStrut(20));
+        notificationView.setAlignmentX(Component.LEFT_ALIGNMENT);
+        RightDefaultPanel.add(notificationView);
 
         MyButton AddTask = new MyButton("+ Add Task");
         AddTask.setActive(true);
@@ -249,6 +255,7 @@ public class Main {
                     currentSubject.addTask(created);
                     db.saveUser(currentUser);
                     subjectDetailsView.updateView();
+                    notificationView.updateView();
                     if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
                 }
             }
@@ -264,6 +271,7 @@ public class Main {
             db.saveUser(currentUser);
             if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
             calendarView.updateView();
+            notificationView.updateView();
             frame.repaint();
         });
 
@@ -271,6 +279,7 @@ public class Main {
             db.saveUser(currentUser);
             if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
             calendarView.updateView();
+            notificationView.updateView();
             frame.repaint();
         });
 
@@ -279,6 +288,7 @@ public class Main {
             rightCardLayout.show(RightPanel, "DEFAULT");
             subjectBtn.setActive(true);
             calendarBtn.setActive(false);
+            notificationView.updateView();
             if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
         });
 

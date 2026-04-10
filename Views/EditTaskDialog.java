@@ -308,6 +308,11 @@ public class EditTaskDialog extends JDialog {
             LocalDate deadline = LocalDate.parse(pendingDeadlineField.getText().trim(),
                     java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy"));
 
+            if (deadline.isBefore(LocalDate.now())) {
+                JOptionPane.showMessageDialog(this, "Deadline cannot be in the past.");
+                return;
+            }
+
             pendingTask.setName(name);
             pendingTask.setDescription(desc);
             pendingTask.setType(type);

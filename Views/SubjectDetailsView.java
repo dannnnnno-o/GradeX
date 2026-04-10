@@ -4,6 +4,7 @@ import Models.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -393,7 +394,16 @@ public class SubjectDetailsView extends JPanel {
     }
 
     private JPanel createTaskRow(Task task) {
-        RoundedPanel row = new RoundedPanel(15, Color.WHITE, Color.decode("#d9d9d9"));
+        boolean isOverdue = false;
+        if (task instanceof PendingTask) {
+            PendingTask pt = (PendingTask) task;
+            if (pt.getDeadline() != null && pt.getDeadline().isBefore(LocalDate.now())) {
+                isOverdue = true;
+            }
+        }
+
+        Color borderColor = isOverdue ? Color.decode("#d9534f") : Color.decode("#d9d9d9");
+        RoundedPanel row = new RoundedPanel(15, Color.WHITE, borderColor);
         row.setLayout(new BorderLayout());
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setBorder(new EmptyBorder(15, 20, 15, 20));
@@ -452,7 +462,7 @@ public class SubjectDetailsView extends JPanel {
             JLabel deadlineLbl = new JLabel(
                     "Deadline: " + pt.getDeadline().format(DateTimeFormatter.ofPattern("M/d/yyyy")));
             deadlineLbl.setFont(new Font("Raleway", Font.PLAIN, 14));
-            deadlineLbl.setForeground(Color.DARK_GRAY);
+            deadlineLbl.setForeground(isOverdue ? Color.decode("#d9534f") : Color.DARK_GRAY);
             deadlineLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
             leftPanel.add(deadlineLbl);
         }

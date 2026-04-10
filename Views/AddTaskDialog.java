@@ -402,6 +402,12 @@ public class AddTaskDialog extends JDialog {
                 double maxScore = Double.parseDouble(maxStr.isEmpty() ? "100" : maxStr);
                 LocalDate deadline = LocalDate.parse(pendingDeadlineField.getText().trim(),
                         java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+                
+                if (deadline.isBefore(LocalDate.now())) {
+                    JOptionPane.showMessageDialog(this, "Deadline cannot be in the past.");
+                    return;
+                }
+                
                 createdTask = new PendingTask(name, maxScore, type, desc, deadline);
             } else {
                 double score = Double.parseDouble(doneScoreField.getText().trim());
