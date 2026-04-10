@@ -77,7 +77,7 @@ public class SignupView extends JPanel {
             if (pass.equals(confirm)) {
                 onSignup.accept(usernameField.getText(), pass);
             } else {
-                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                Components.CustomDialog.showMessage(SwingUtilities.getWindowAncestor(this), "Signup Error", "Passwords do not match!");
             }
         });
 

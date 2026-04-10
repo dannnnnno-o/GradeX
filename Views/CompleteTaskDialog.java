@@ -79,13 +79,13 @@ public class CompleteTaskDialog extends JDialog {
             try {
                 double val = Double.parseDouble(scoreField.getText().trim());
                 if (val < 0 || val > maxScore) {
-                    JOptionPane.showMessageDialog(this, "Score must be between 0 and " + maxScore);
+                    Components.CustomDialog.showMessage(this, "Invalid Score", "Score must be between 0 and " + maxScore);
                     return;
                 }
                 resultScore = val;
                 dispose();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Invalid score. Please enter a number.");
+                Components.CustomDialog.showMessage(this, "Invalid Input", "Please enter a valid numerical score.");
             }
         });
         

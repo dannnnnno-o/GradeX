@@ -8,6 +8,7 @@ public class SubjectCard extends JPanel {
     private Subject subject;
     private JButton viewDetailsBtn;
     private JButton removeBtn;
+    private JButton editBtn;
 
     public SubjectCard(Subject subject) {
         this.subject = subject;
@@ -51,13 +52,45 @@ public class SubjectCard extends JPanel {
         removeBtn.setMargin(new Insets(0, 0, 0, 0));
         removeBtn.setPreferredSize(new Dimension(70, 25));
 
-        // To place removeBtn at the very top right, without getting stretched
-        JPanel removeWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        removeWrapper.setOpaque(false);
-        removeWrapper.add(removeBtn);
+        // Custom Pill shaped Edit Button
+        editBtn = new JButton("Edit") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.decode("#efffbd")); // Light yellow
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+                super.paintComponent(g2);
+                g2.dispose();
+            }
+        };
+        editBtn.setFocusPainted(false);
+        editBtn.setContentAreaFilled(false);
+        editBtn.setBorderPainted(false);
+        editBtn.setForeground(Color.decode("#b8af51")); // Darker yellow text
+        editBtn.setFont(new Font("Raleway", Font.PLAIN, 12));
+        editBtn.setMargin(new Insets(0, 0, 0, 0));
+        editBtn.setPreferredSize(new Dimension(70, 25));
+
+        // Column for action buttons on the right
+        JPanel actionColumn = new JPanel();
+        actionColumn.setLayout(new BoxLayout(actionColumn, BoxLayout.Y_AXIS));
+        actionColumn.setOpaque(false);
+        
+        JPanel removeRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        removeRow.setOpaque(false);
+        removeRow.add(removeBtn);
+        
+        JPanel editRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        editRow.setOpaque(false);
+        editRow.add(editBtn);
+
+        actionColumn.add(removeRow);
+        actionColumn.add(Box.createRigidArea(new Dimension(0, 5)));
+        actionColumn.add(editRow);
 
         topPanel.add(nameLabel, BorderLayout.WEST);
-        topPanel.add(removeWrapper, BorderLayout.EAST);
+        topPanel.add(actionColumn, BorderLayout.EAST);
         content.add(topPanel);
 
         content.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -160,6 +193,10 @@ public class SubjectCard extends JPanel {
 
     public JButton getRemoveBtn() {
         return removeBtn;
+    }
+
+    public JButton getEditBtn() {
+        return editBtn;
     }
 
     public Subject getSubject() {

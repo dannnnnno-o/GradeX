@@ -5,45 +5,22 @@ import Models.TaskType;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 
-public class AddSubjectDialog extends JDialog {
-    private Subject createdSubject;
+public class EditSubjectDialog extends JDialog {
+    private Subject subject;
+    private boolean confirmed = false;
     private JTextField nameField;
     private JTextField[] rubricFields;
     private JLabel totalLabel;
 
     class RoundedField extends JTextField {
         private int radius;
-
-        public RoundedField(int radius, String placeholder) {
+        public RoundedField(int radius) {
             this.radius = radius;
             setOpaque(false);
             setBackground(Color.decode("#eeeeee"));
-            setForeground(Color.GRAY);
-            setText(placeholder);
             setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-            addFocusListener(new FocusListener() {
-                @Override
-                public void focusGained(FocusEvent e) {
-                    if (getText().equals(placeholder)) {
-                        setText("");
-                        setForeground(Color.BLACK);
-                    }
-                }
-
-                @Override
-                public void focusLost(FocusEvent e) {
-                    if (getText().isEmpty()) {
-                        setForeground(Color.GRAY);
-                        setText(placeholder);
-                    }
-                }
-            });
         }
-
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
@@ -55,8 +32,9 @@ public class AddSubjectDialog extends JDialog {
         }
     }
 
-    public AddSubjectDialog(JFrame parent) {
-        super(parent, "Add Subject", true);
+    public EditSubjectDialog(JFrame parent, Subject subject) {
+        super(parent, "Edit Subject", true);
+        this.subject = subject;
         setSize(450, 600);
         setLocationRelativeTo(parent);
         setResizable(false);
@@ -66,44 +44,35 @@ public class AddSubjectDialog extends JDialog {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(new EmptyBorder(30, 45, 30, 45));
 
-        // Title
-        JLabel titleLabel = new JLabel("Add Subject");
+        JLabel titleLabel = new JLabel("Edit Subject Details");
         titleLabel.setFont(new Font("Raleway", Font.BOLD, 22));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        // Subject Name
         JLabel nameHeader = new JLabel("Subject Name");
         nameHeader.setFont(new Font("Raleway", Font.BOLD, 16));
         nameHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(nameHeader);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        nameField = new RoundedField(20, "e.g.: Computer Programming");
+        nameField = new RoundedField(20);
+        nameField.setText(subject.getName());
         nameField.setFont(new Font("Raleway", Font.PLAIN, 14));
         nameField.setMaximumSize(new Dimension(300, 40));
         nameField.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(nameField);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        // Grading Rubrics Header
         JLabel rubricsHeader = new JLabel("Grading Rubrics");
         rubricsHeader.setFont(new Font("Raleway", Font.BOLD, 16));
         rubricsHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(rubricsHeader);
-
-        JLabel rubricsSub = new JLabel("Leave at 0% if you want to set this later");
-        rubricsSub.setFont(new Font("Raleway", Font.PLAIN, 12));
-        rubricsSub.setForeground(Color.GRAY);
-        rubricsSub.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(rubricsSub);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        
-        // ... grid logic stays the same but the wrapper will center it
 
         TaskType[] types = TaskType.values();
         rubricFields = new JTextField[types.length];
+        int[] rubrics = subject.getRubrics();
 
         JPanel rGrid = new JPanel(new GridBagLayout());
         rGrid.setOpaque(false);
@@ -115,29 +84,19 @@ public class AddSubjectDialog extends JDialog {
 
         for (int i = 0; i < types.length; i++) {
             gbc.gridy = i;
-
-            // Label
             gbc.gridx = 0;
-            gbc.weightx = 0;
-            JLabel typeLbl = new JLabel(
-                    types[i].name().substring(0, 1).toUpperCase() + types[i].name().substring(1).toLowerCase());
+            JLabel typeLbl = new JLabel(types[i].name().substring(0, 1).toUpperCase() + types[i].name().substring(1).toLowerCase());
             typeLbl.setFont(new Font("Raleway", Font.BOLD, 15));
             typeLbl.setPreferredSize(new Dimension(140, 32));
             rGrid.add(typeLbl, gbc);
 
-            // Input
             gbc.gridx = 1;
-            gbc.weightx = 0;
-            rubricFields[i] = new RoundedField(15, "0");
+            rubricFields[i] = new RoundedField(15);
             rubricFields[i].setHorizontalAlignment(SwingConstants.CENTER);
             rubricFields[i].setPreferredSize(new Dimension(75, 35));
-            rubricFields[i].setText("0");
-            rubricFields[i].setForeground(Color.BLACK);
-
+            rubricFields[i].setText(String.valueOf(rubrics[i]));
             rubricFields[i].addKeyListener(new java.awt.event.KeyAdapter() {
-                public void keyReleased(java.awt.event.KeyEvent evt) {
-                    updateTotal();
-                }
+                public void keyReleased(java.awt.event.KeyEvent evt) { updateTotal(); }
                 public void keyTyped(java.awt.event.KeyEvent evt) {
                     char c = evt.getKeyChar();
                     if (!Character.isDigit(c)) evt.consume();
@@ -145,38 +104,29 @@ public class AddSubjectDialog extends JDialog {
             });
             rGrid.add(rubricFields[i], gbc);
 
-            // Percent
             gbc.gridx = 2;
             gbc.insets = new Insets(0, 10, 8, 0);
             JLabel ps = new JLabel("%");
-            ps.setFont(new Font("Raleway", Font.PLAIN, 14));
             rGrid.add(ps, gbc);
-
-            gbc.insets = new Insets(0, 0, 8, 0); // reset
+            gbc.insets = new Insets(0, 0, 8, 0);
         }
 
-        // Align grid to the center
         JPanel rWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         rWrapper.setOpaque(false);
         rWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
         rWrapper.add(rGrid);
+        rWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
         mainPanel.add(rWrapper);
 
         totalLabel = new JLabel("Total: 0%");
         totalLabel.setFont(new Font("Raleway", Font.PLAIN, 12));
-        totalLabel.setForeground(Color.DARK_GRAY);
         totalLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(totalLabel);
+        updateTotal();
 
         mainPanel.add(Box.createVerticalGlue());
 
-        // Add Button Centered Wrapper
-        JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        btnWrapper.setOpaque(false);
-        btnWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-
-        JButton createBtn = new JButton("Add Subject") {
+        JButton updateBtn = new JButton("Save Changes") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -187,64 +137,62 @@ public class AddSubjectDialog extends JDialog {
                 g2.dispose();
             }
         };
-        createBtn.setFont(new Font("Raleway", Font.BOLD, 16));
-        createBtn.setForeground(Color.WHITE);
-        createBtn.setFocusPainted(false);
-        createBtn.setContentAreaFilled(false);
-        createBtn.setBorderPainted(false);
-        createBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        createBtn.setPreferredSize(new Dimension(280, 45));
+        updateBtn.setFont(new Font("Raleway", Font.BOLD, 16));
+        updateBtn.setForeground(Color.WHITE);
+        updateBtn.setFocusPainted(false);
+        updateBtn.setContentAreaFilled(false);
+        updateBtn.setBorderPainted(false);
+        updateBtn.setPreferredSize(new Dimension(280, 45));
+        updateBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        updateBtn.addActionListener(e -> attemptUpdate());
 
-        createBtn.addActionListener(e -> attemptCreateSubject());
-
-        btnWrapper.add(createBtn);
+        JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        btnWrapper.setOpaque(false);
+        btnWrapper.add(updateBtn);
         mainPanel.add(btnWrapper);
+
         add(mainPanel);
     }
 
     private void updateTotal() {
         int sum = 0;
         for (JTextField f : rubricFields) {
-            String val = f.getText().trim();
-            if (val.isEmpty() || val.equals("0")) continue;
             try {
-                int v = Integer.parseInt(val);
+                int v = Integer.parseInt(f.getText().trim());
                 if (v < 0) { f.setText("0"); v = 0; }
                 sum += v;
             } catch (NumberFormatException e) {
-                f.setText("0");
+                // Ignore transient empty/invalid states during typing
             }
         }
         totalLabel.setText("Total: " + sum + "%");
         if (sum > 100) {
-            totalLabel.setForeground(Color.decode("#d9534f")); // Red for overflow
+            totalLabel.setForeground(Color.decode("#d9534f")); // Red
             totalLabel.setText("Total: " + sum + "% (Limit: 100%)");
         } else if (sum == 100) {
-            totalLabel.setForeground(Color.decode("#27ae60")); // Green for complete
+            totalLabel.setForeground(Color.decode("#27ae60")); // Green
         } else {
             totalLabel.setForeground(Color.DARK_GRAY);
         }
     }
 
-    private void attemptCreateSubject() {
+    private void attemptUpdate() {
         String name = nameField.getText().trim();
-        if (name.isEmpty() || name.equals("e.g.: Computer Programming")) {
-            showCustomMessage("Subject Name required", "Please enter a subject name.", true);
+        if (name.isEmpty()) {
+            showCustomMessage("Subject name required", "Please enter a subject name.", true);
             return;
         }
 
-        int[] rubrics = new int[TaskType.values().length];
+        int[] newRubrics = new int[rubricFields.length];
         int sum = 0;
         try {
             for (int i = 0; i < rubricFields.length; i++) {
-                String val = rubricFields[i].getText().trim();
-                if (val.isEmpty()) val = "0";
-                int v = Integer.parseInt(val);
-                rubrics[i] = v;
+                int v = Integer.parseInt(rubricFields[i].getText().trim());
+                newRubrics[i] = v;
                 sum += v;
             }
         } catch (NumberFormatException ex) {
-            showCustomMessage("Invalid Input", "Rubrics must be integer values.", true);
+            showCustomMessage("Invalid Input", "Rubrics must be integers.", true);
             return;
         }
 
@@ -254,11 +202,13 @@ public class AddSubjectDialog extends JDialog {
         }
 
         if (sum != 100 && sum != 0) {
-            boolean confirmed = CustomDialog.showConfirm(this, "Incomplete Rubrics", "The total remains " + sum + "%. Projected grade calculation will be paused until it reaches 100%. Proceed?");
+            boolean confirmed = CustomDialog.showConfirm(this, "Incomplete Rubrics", "Total remains " + sum + "%. Projected grade calculation will be paused until it reaches 100%. Proceed?");
             if (!confirmed) return;
         }
 
-        createdSubject = new Subject(name, rubrics);
+        subject.setName(name);
+        subject.setRubrics(newRubrics);
+        this.confirmed = true;
         dispose();
     }
 
@@ -266,7 +216,5 @@ public class AddSubjectDialog extends JDialog {
         CustomDialog.showMessage(this, title, msg);
     }
 
-    public Subject getCreatedSubject() {
-        return createdSubject;
-    }
+    public boolean isConfirmed() { return confirmed; }
 }

@@ -2,6 +2,7 @@ package Views;
 
 import Models.Subject;
 import Components.SubjectCard;
+import Components.EditSubjectDialog;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -114,6 +115,17 @@ public class SubjectsView extends JPanel {
                     dialog.setVisible(true);
                     if (dialog.isConfirmed()) {
                         subjects.remove(sub);
+                        if (onDataChanged != null)
+                            onDataChanged.run();
+                        updateView();
+                    }
+                });
+
+                card.getEditBtn().addActionListener(e -> {
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+                    EditSubjectDialog dialog = new EditSubjectDialog(topFrame, sub);
+                    dialog.setVisible(true);
+                    if (dialog.isConfirmed()) {
                         if (onDataChanged != null)
                             onDataChanged.run();
                         updateView();

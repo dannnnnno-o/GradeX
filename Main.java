@@ -106,21 +106,18 @@ public class Main {
                 currentUser = authenticated;
                 showDashboardView();
             } else {
-                JOptionPane.showMessageDialog(frame, "Invalid username or password", "Login Failed",
-                        JOptionPane.ERROR_MESSAGE);
+                Components.CustomDialog.showMessage(frame, "Login Failed", "Invalid username or password");
             }
         });
 
         SignupView signupView = new SignupView((user, pass) -> {
             if (db.register(user, pass)) {
-                JOptionPane.showMessageDialog(frame, "Account created successfully! Please login.", "Signup Success",
-                        JOptionPane.INFORMATION_MESSAGE);
+                Components.CustomDialog.showMessage(frame, "Signup Success", "Account created successfully! Please login.");
                 midCardLayout.show(MidPanel, "LOGIN");
                 loginTab.setActive(true);
                 signupTab.setActive(false);
             } else {
-                JOptionPane.showMessageDialog(frame, "Username already exists or database error", "Signup Failed",
-                        JOptionPane.ERROR_MESSAGE);
+                Components.CustomDialog.showMessage(frame, "Signup Failed", "Username already exists or database error");
             }
         });
 

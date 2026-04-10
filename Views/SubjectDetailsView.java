@@ -352,9 +352,8 @@ public class SubjectDetailsView extends JPanel {
             emptyMsg.setAlignmentX(Component.LEFT_ALIGNMENT);
             emptyMsg.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
             tasksContainerPanel.add(emptyMsg);
-        } else {
-            tasksContainerPanel.add(Box.createVerticalGlue()); // Push everything up
         }
+        tasksContainerPanel.add(Box.createVerticalGlue()); // Push everything up
 
         revalidate();
         repaint();
@@ -531,9 +530,8 @@ public class SubjectDetailsView extends JPanel {
         } else {
             PillButton removeBtn = new PillButton("Remove", Color.decode("#fcb6b9"), Color.decode("#d9534f"));
             removeBtn.addActionListener(e -> {
-                int resp = JOptionPane.showConfirmDialog(this, "Remove " + task.getName() + "?", "Remove Task",
-                        JOptionPane.YES_NO_OPTION);
-                if (resp == JOptionPane.YES_OPTION) {
+                boolean confirmed = Components.CustomDialog.showConfirm(SwingUtilities.getWindowAncestor(this), "Remove Task", "Remove " + task.getName() + "?");
+                if (confirmed) {
                     currentSubject.removeTask(task);
                     if (onDataChanged != null)
                         onDataChanged.run();
