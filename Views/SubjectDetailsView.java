@@ -15,7 +15,9 @@ public class SubjectDetailsView extends JPanel {
     private JPanel tasksContainerPanel;
     private Subject currentSubject;
     private String currentFilter = "All Tasks";
+    private boolean sortPendingByDeadline = false;
     private JPanel filterPanel;
+    private PillButton sortToggleBtn;
     private Runnable onDataChanged;
     private Runnable onBack;
 
@@ -45,32 +47,6 @@ public class SubjectDetailsView extends JPanel {
                 g2.setColor(borderColor);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
             }
-            g2.dispose();
-        }
-    }
-
-    class PillButton extends JButton {
-        private Color bgColor;
-
-        public PillButton(String text, Color bg, Color fg) {
-            super(text);
-            this.bgColor = bg;
-            setForeground(fg);
-            setFocusPainted(false);
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFont(new Font("Raleway", Font.PLAIN, 12));
-            setMargin(new Insets(2, 6, 2, 6));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(bgColor);
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, getHeight() - 1, getHeight() - 1);
-            super.paintComponent(g2);
             g2.dispose();
         }
     }
@@ -108,6 +84,69 @@ public class SubjectDetailsView extends JPanel {
         }
     }
 
+    class PillButton extends JButton {
+        private boolean active;
+        private boolean isToggle;
+        private Color bgColor, fgColor;
+
+        // Constructor for toggles (sorting)
+        public PillButton(String text, boolean active) {
+            super(text);
+            this.active = active;
+            this.isToggle = true;
+            setFont(new Font("Raleway", Font.BOLD, 13));
+            setForeground(active ? Color.BLACK : Color.GRAY);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorder(new EmptyBorder(8, 15, 8, 15));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        // Constructor for fixed colors (Edit, Remove, Complete)
+        public PillButton(String text, Color bg, Color fg) {
+            super(text);
+            this.isToggle = false;
+            this.bgColor = bg;
+            this.fgColor = fg;
+            setFont(new Font("Raleway", Font.BOLD, 13));
+            setForeground(fg);
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setBorder(new EmptyBorder(8, 15, 8, 15));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        public void setActive(boolean active) {
+            if (isToggle) {
+                this.active = active;
+                setForeground(active ? Color.BLACK : Color.GRAY);
+                repaint();
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (isToggle) {
+                if (active) {
+                    g2.setColor(Color.decode("#dfdfdf"));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                } else {
+                    g2.setColor(Color.decode("#d9d9d9"));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+                }
+            } else {
+                g2.setColor(bgColor);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            }
+
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
     public SubjectDetailsView() {
         setLayout(new BorderLayout());
         setBackground(Color.decode("#e9e9e9"));
@@ -127,7 +166,8 @@ public class SubjectDetailsView extends JPanel {
         backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         backBtn.addActionListener(e -> {
-            if (onBack != null) onBack.run();
+            if (onBack != null)
+                onBack.run();
         });
 
         mainContent.add(backBtn);
@@ -182,6 +222,18 @@ public class SubjectDetailsView extends JPanel {
         filterBg.add(compBtn);
         filterBg.add(pendBtn);
         filterPanel.add(filterBg);
+
+        filterPanel.add(Box.createHorizontalStrut(20));
+
+        sortToggleBtn = new PillButton("Sort by Deadline", false);
+        sortToggleBtn.setVisible(false); // Only for pending
+        sortToggleBtn.addActionListener(e -> {
+            sortPendingByDeadline = !sortPendingByDeadline;
+            sortToggleBtn.setActive(sortPendingByDeadline);
+            updateView();
+        });
+        filterPanel.add(sortToggleBtn);
+
         mainContent.add(filterPanel);
 
         mainContent.add(Box.createVerticalStrut(25));
@@ -202,11 +254,15 @@ public class SubjectDetailsView extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    private void setFilter(String filter, FilterButton activeBtn, FilterButton other1, FilterButton other2) {
+    private void setFilter(String filter, FilterButton active, FilterButton... others) {
         currentFilter = filter;
-        activeBtn.setActive(true);
-        other1.setActive(false);
-        other2.setActive(false);
+        active.setActive(true);
+        for (FilterButton b : others)
+            b.setActive(false);
+
+        // Only show sort for Pending
+        sortToggleBtn.setVisible(filter.equals("Pending"));
+
         updateView();
     }
 
@@ -241,20 +297,30 @@ public class SubjectDetailsView extends JPanel {
 
         tasksContainerPanel.removeAll();
         boolean hasAnyTasks = false;
+        List<Task> allTasks = currentSubject.getAllTasks();
+
         for (int i = 0; i < types.length; i++) {
             TaskType currentType = types[i];
             List<Task> filteredTasks = new ArrayList<>();
 
-            for (Task t : currentSubject.getAllTasks()) {
+            for (Task t : allTasks) {
                 if (t.getType() == currentType) {
-                    if (currentFilter.equals("All Tasks")) {
+                    if (currentFilter.equals("All Tasks"))
                         filteredTasks.add(t);
-                    } else if (currentFilter.equals("Completed") && t instanceof CompletedTask) {
+                    else if (currentFilter.equals("Completed") && t instanceof CompletedTask)
                         filteredTasks.add(t);
-                    } else if (currentFilter.equals("Pending") && t instanceof PendingTask) {
+                    else if (currentFilter.equals("Pending") && t instanceof PendingTask)
                         filteredTasks.add(t);
-                    }
                 }
+            }
+
+            if (currentFilter.equals("Pending") && sortPendingByDeadline) {
+                // Stable sort by deadline, preserves original order for ties
+                filteredTasks.sort((t1, t2) -> {
+                    PendingTask p1 = (PendingTask) t1;
+                    PendingTask p2 = (PendingTask) t2;
+                    return p1.getDeadline().compareTo(p2.getDeadline());
+                });
             }
 
             if (!filteredTasks.isEmpty()) {
