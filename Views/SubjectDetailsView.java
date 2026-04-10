@@ -406,9 +406,10 @@ public class SubjectDetailsView extends JPanel {
             });
 
             removeBtn.addActionListener(e -> {
-                int resp = JOptionPane.showConfirmDialog(this, "Remove " + task.getName() + "?", "Remove Task",
-                        JOptionPane.YES_NO_OPTION);
-                if (resp == JOptionPane.YES_OPTION) {
+                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+                RemoveTaskDialog dialog = new RemoveTaskDialog(parent, "Remove Task", task.getName());
+                dialog.setVisible(true);
+                if (dialog.isConfirmed()) {
                     currentSubject.removeTask(task);
                     if (onDataChanged != null)
                         onDataChanged.run();
@@ -417,26 +418,18 @@ public class SubjectDetailsView extends JPanel {
             });
 
             compBtn.addActionListener(e -> {
-                String input = JOptionPane.showInputDialog(this,
-                    "Enter final score for '" + task.getName() + "' (Max: " + task.getMaxScore() + "):",
-                    "Complete Task", JOptionPane.PLAIN_MESSAGE);
-                if (input != null && !input.trim().isEmpty()) {
-                    try {
-                        double score = Double.parseDouble(input.trim());
-                        if (score < 0 || score > task.getMaxScore()) {
-                            JOptionPane.showMessageDialog(this, "Score must be between 0 and " + task.getMaxScore() + ".");
-                            return;
-                        }
-                        currentSubject.removeTask(task);
-                        CompletedTask cTask = new CompletedTask(task.getName(), score, task.getMaxScore(),
-                                task.getType(), task.getDescription());
-                        currentSubject.addTask(cTask);
-                        if (onDataChanged != null)
-                            onDataChanged.run();
-                        updateView();
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(this, "Invalid score. Please enter a number.");
-                    }
+                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+                CompleteTaskDialog dialog = new CompleteTaskDialog(parent, task);
+                dialog.setVisible(true);
+                Double score = dialog.getResultScore();
+                if (score != null) {
+                    currentSubject.removeTask(task);
+                    CompletedTask cTask = new CompletedTask(task.getName(), score, task.getMaxScore(),
+                            task.getType(), task.getDescription());
+                    currentSubject.addTask(cTask);
+                    if (onDataChanged != null)
+                        onDataChanged.run();
+                    updateView();
                 }
             });
 

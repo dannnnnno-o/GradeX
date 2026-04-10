@@ -4,3 +4,11 @@ proposal
     deadline-based task sorting
     11-point system
     date-validation
+
+UI
+    support for 1080p and 1366p viewports
+
+    tasks
+        adjustments for tasks list #done 
+        accommodate deadline-based task sorting 
+        add task dialog/modal #done

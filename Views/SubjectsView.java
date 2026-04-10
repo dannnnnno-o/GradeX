@@ -107,9 +107,10 @@ public class SubjectsView extends JPanel {
                 SubjectCard card = new SubjectCard(sub);
 
                 card.getRemoveBtn().addActionListener(e -> {
-                    int resp = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove " + sub.getName() + "?",
-                            "Remove Subject", JOptionPane.YES_NO_OPTION);
-                    if (resp == JOptionPane.YES_OPTION) {
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+                    RemoveTaskDialog dialog = new RemoveTaskDialog(topFrame, "Remove Subject", sub.getName());
+                    dialog.setVisible(true);
+                    if (dialog.isConfirmed()) {
                         subjects.remove(sub);
                         if (onDataChanged != null)
                             onDataChanged.run();
