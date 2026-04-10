@@ -275,6 +275,8 @@ public class SubjectDetailsView extends JPanel {
             emptyMsg.setAlignmentX(Component.LEFT_ALIGNMENT);
             emptyMsg.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
             tasksContainerPanel.add(emptyMsg);
+        } else {
+            tasksContainerPanel.add(Box.createVerticalGlue()); // Push everything up
         }
 
         revalidate();
@@ -307,7 +309,7 @@ public class SubjectDetailsView extends JPanel {
         section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
         section.setAlignmentX(Component.LEFT_ALIGNMENT);
         section.setBorder(new EmptyBorder(25, 25, 25, 25));
-        section.setMaximumSize(new Dimension(800, Integer.MAX_VALUE));
+        section.setMaximumSize(new Dimension(800, 10000)); // Large max height is fine if we have glue
 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Raleway", Font.BOLD, 22));
@@ -329,6 +331,8 @@ public class SubjectDetailsView extends JPanel {
         row.setLayout(new BorderLayout());
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setBorder(new EmptyBorder(15, 20, 15, 20));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        row.setPreferredSize(new Dimension(600, 100)); // Default preferred height
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
