@@ -2,16 +2,20 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import Components.*;
 import Models.*;
 import Views.*;
 
 public class Main {
-    @SuppressWarnings("unused")
+    private static JFrame frame;
+    private static JPanel LeftPanel, MidPanel, RightPanel;
+    private static CardLayout midCardLayout, rightCardLayout;
+    private static DB db;
+    private static User currentUser;
+
     public static void main(String[] args) {
+        db = new DB();
+
         // Window Properties
         int WindowWidth = 1366;
         int WindowHeight = 720;
@@ -20,36 +24,10 @@ public class Main {
         String HeaderBGHex = "#f4f4f4";
         Color HeaderBG = Color.decode(HeaderBGHex);
 
-        // Header
-        int HeaderX = 0;
-        int HeaderY = 0;
-        int HeaderWidth = WindowWidth;
-        int HeaderHeight = 80;
-
-        // Left Panel Properties
-        int LeftPanelX = 0;
-        int LeftPanelY = HeaderHeight;
-        int LeftPanelWidth = (int) Math.round(WindowWidth * 0.2);
-        int LeftPanelHeight = WindowHeight;
-
-        // Mid Panel Properties
-        int MidPanelX = LeftPanelWidth;
-        int MidPanelY = HeaderHeight;
-        int MidPanelWidth = (int) Math.round(WindowWidth * 0.55);
-        int MidPanelHeight = WindowHeight;
-
-        // Right Panel Properties
-        // int RightPanelX = LeftPanelWidth + MidPanelWidth;
-        int RightPanelX = 0;
-        int RightPanelY = HeaderHeight;
-        int RightPanelWidth = (int) Math.round(WindowWidth * 0.25);
-        int RightPanelHeight = WindowHeight;
-
         // Frame Properties
-        JFrame frame = new JFrame("GradeX");
+        frame = new JFrame("GradeX");
         frame.setSize(WindowWidth, WindowHeight);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // frame.setResizable(false);
 
         // Header
         JPanel Header = new JPanel(new BorderLayout());
@@ -63,165 +41,194 @@ public class Main {
 
         String BorderBottomHex = "#c9c9c9";
         Color BorderBottom = Color.decode(BorderBottomHex);
-
         Border LeftMargin = new EmptyBorder(0, 25, 0, 0);
         Border BottomBorder = BorderFactory.createMatteBorder(0, 0, 2, 0, BorderBottom);
-
         Header.setBorder(BorderFactory.createCompoundBorder(BottomBorder, LeftMargin));
         Header.add(hero, BorderLayout.WEST);
 
-        // Left Panel
-        JPanel LeftPanel = new JPanel();
+        // Panels Setup
+        LeftPanel = new JPanel();
         LeftPanel.setPreferredSize(new Dimension(WindowWidth / 4, WindowHeight));
         LeftPanel.setBackground(BackgroundColor);
         LeftPanel.setLayout(new BoxLayout(LeftPanel, BoxLayout.Y_AXIS));
-        LeftPanel.setBorder(new EmptyBorder(20, 0, 0, 10)); // Top 20, Right 10
+        LeftPanel.setBorder(new EmptyBorder(20, 0, 0, 10));
 
-        // Middle Panel
-        JPanel MidPanel = new JPanel();
+        MidPanel = new JPanel();
         MidPanel.setBackground(BackgroundColor);
-        CardLayout cardLayout = new CardLayout();
-        MidPanel.setLayout(cardLayout);
+        midCardLayout = new CardLayout();
+        MidPanel.setLayout(midCardLayout);
 
-        // --- Dummy Data Setup ---
-        List<Subject> dummySubjects = new ArrayList<>();
-
-        Subject math = new Subject("Mathematics", new int[] { 20, 10, 30, 40, 0 });
-        PendingTask mathHW = new PendingTask("Algebra Homework", 100, TaskType.ASSIGNMENT, "Do page 42",
-                LocalDate.now().plusDays(2));
-        PendingTask mathExam = new PendingTask("Midterm Exam", 100, TaskType.EXAM, "Chapters 1-5",
-                LocalDate.now().plusDays(-1));
-        PendingTask futureQuiz = new PendingTask("Pop Quiz", 10, TaskType.QUIZ, "Vectors", LocalDate.now().plusDays(5));
-        CompletedTask oldQuiz = new CompletedTask("Intro Quiz", 9.5, 10, TaskType.QUIZ, "Vectors intro");
-        math.addTask(mathHW);
-        math.addTask(mathExam);
-        math.addTask(futureQuiz);
-        math.addTask(oldQuiz);
-        math.setGrade(95.0);
-        dummySubjects.add(math);
-
-        Subject science = new Subject("Science", new int[] { 15, 15, 20, 50, 0 });
-        PendingTask lab = new PendingTask("Volcano Lab", 50, TaskType.ACTIVITY, "Build model",
-                LocalDate.now().plusDays(4));
-        CompletedTask oldLab = new CompletedTask("Cell Lab", 48, 50, TaskType.ACTIVITY, "Microscope cells");
-        science.addTask(lab);
-        science.addTask(oldLab);
-        science.setGrade(96.0);
-        dummySubjects.add(science);
-
-        Subject history = new Subject("History", new int[] { 10, 20, 30, 40, 0 });
-        PendingTask essay = new PendingTask("WW2 Essay", 100, TaskType.PROJECT, "Write 5 pages",
-                LocalDate.now().plusDays(10));
-        history.addTask(essay);
-        history.setGrade(88.5);
-        dummySubjects.add(history);
-
-        // Right Panel
-        JPanel RightPanel = new JPanel();
+        RightPanel = new JPanel();
         RightPanel.setPreferredSize(new Dimension(WindowWidth / 4, WindowHeight));
         RightPanel.setBackground(BackgroundColor);
-        CardLayout rightCardLayout = new CardLayout();
+        rightCardLayout = new CardLayout();
         RightPanel.setLayout(rightCardLayout);
 
-        // Subject Details View instantiation (need reference for AddTask)
+        frame.add(Header, BorderLayout.NORTH);
+        frame.add(LeftPanel, BorderLayout.WEST);
+        frame.add(MidPanel, BorderLayout.CENTER);
+        frame.add(RightPanel, BorderLayout.EAST);
+
+        showAuthView();
+
+        frame.setVisible(true);
+    }
+
+    private static void showAuthView() {
+        LeftPanel.removeAll();
+        MidPanel.removeAll();
+        RightPanel.removeAll();
+
+        MyButton loginTab = new MyButton("Login");
+        MyButton signupTab = new MyButton("Signup");
+
+        int LeftPanelWidth = frame.getWidth() / 4;
+        Dimension leftBtnSize = new Dimension(LeftPanelWidth / 2, 40);
+        loginTab.setMinimumSize(leftBtnSize);
+        loginTab.setMaximumSize(leftBtnSize);
+        loginTab.setPreferredSize(leftBtnSize);
+        loginTab.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        loginTab.setActive(true);
+
+        signupTab.setMinimumSize(leftBtnSize);
+        signupTab.setMaximumSize(leftBtnSize);
+        signupTab.setPreferredSize(leftBtnSize);
+        signupTab.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        signupTab.setActive(false);
+
+        LeftPanel.add(loginTab);
+        LeftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        LeftPanel.add(signupTab);
+
+        LoginView loginView = new LoginView((user, pass) -> {
+            User authenticated = db.authenticate(user, pass);
+            if (authenticated != null) {
+                currentUser = authenticated;
+                showDashboardView();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Invalid username or password", "Login Failed",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        SignupView signupView = new SignupView((user, pass) -> {
+            if (db.register(user, pass)) {
+                JOptionPane.showMessageDialog(frame, "Account created successfully! Please login.", "Signup Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                midCardLayout.show(MidPanel, "LOGIN");
+                loginTab.setActive(true);
+                signupTab.setActive(false);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Username already exists or database error", "Signup Failed",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        WelcomeView welcomeView = new WelcomeView();
+
+        MidPanel.add(loginView, "LOGIN");
+        MidPanel.add(signupView, "SIGNUP");
+        RightPanel.add(welcomeView, "WELCOME");
+
+        loginTab.addActionListener(e -> {
+            midCardLayout.show(MidPanel, "LOGIN");
+            loginTab.setActive(true);
+            signupTab.setActive(false);
+        });
+
+        signupTab.addActionListener(e -> {
+            midCardLayout.show(MidPanel, "SIGNUP");
+            signupTab.setActive(true);
+            loginTab.setActive(false);
+        });
+
+        LeftPanel.revalidate();
+        LeftPanel.repaint();
+        MidPanel.revalidate();
+        MidPanel.repaint();
+        RightPanel.revalidate();
+        RightPanel.repaint();
+    }
+
+    private static void showDashboardView() {
+        LeftPanel.removeAll();
+        MidPanel.removeAll();
+        RightPanel.removeAll();
+
+        // Dashboard Navigation
+        MyButton subjectBtn = new MyButton("Subjects");
+        MyButton calendarBtn = new MyButton("Calendar");
+        MyButton logoutBtn = new MyButton("Logout");
+
+        int LeftPanelWidth = frame.getWidth() / 4;
+        Dimension leftBtnSize = new Dimension(LeftPanelWidth / 2, 40);
+
+        subjectBtn.setMinimumSize(leftBtnSize);
+        subjectBtn.setMaximumSize(leftBtnSize);
+        subjectBtn.setPreferredSize(leftBtnSize);
+        subjectBtn.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        subjectBtn.setActive(true);
+
+        calendarBtn.setMinimumSize(leftBtnSize);
+        calendarBtn.setMaximumSize(leftBtnSize);
+        calendarBtn.setPreferredSize(leftBtnSize);
+        calendarBtn.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        calendarBtn.setActive(false);
+
+        logoutBtn.setMinimumSize(leftBtnSize);
+        logoutBtn.setMaximumSize(leftBtnSize);
+        logoutBtn.setPreferredSize(leftBtnSize);
+        logoutBtn.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        logoutBtn.setActive(false);
+
+        LeftPanel.add(subjectBtn);
+        LeftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        LeftPanel.add(calendarBtn);
+        LeftPanel.add(Box.createVerticalGlue());
+        LeftPanel.add(logoutBtn);
+        LeftPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // Mid Panel Views
         SubjectDetailsView subjectDetailsView = new SubjectDetailsView();
 
         // Right Panel - Default View
         JPanel RightDefaultPanel = new JPanel();
         RightDefaultPanel.setLayout(new BoxLayout(RightDefaultPanel, BoxLayout.Y_AXIS));
-        RightDefaultPanel.setBackground(BackgroundColor);
-        RightDefaultPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
+        RightDefaultPanel.setBackground(Color.decode("#e9e9e9"));
+        RightDefaultPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
 
         // Right Panel - Subject Details View
         JPanel RightSubjectPanel = new JPanel();
         RightSubjectPanel.setLayout(new BoxLayout(RightSubjectPanel, BoxLayout.Y_AXIS));
-        RightSubjectPanel.setBackground(BackgroundColor);
-        RightSubjectPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
+        RightSubjectPanel.setBackground(Color.decode("#e9e9e9"));
+        RightSubjectPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
 
-        SubjectsView subjectsView = new SubjectsView(dummySubjects, (sub) -> {
-            subjectDetailsView.setSubject(sub);
-            cardLayout.show(MidPanel, "DETAILS");
-            rightCardLayout.show(RightPanel, "SUBJECT");
-        }, () -> {
-            frame.repaint();
-        });
-
-        // Right Panel - Calendar View
-        JPanel RightCalendarPanel = new JPanel();
-        RightCalendarPanel.setLayout(new BoxLayout(RightCalendarPanel, BoxLayout.Y_AXIS));
-        RightCalendarPanel.setBackground(BackgroundColor);
-        RightCalendarPanel.setBorder(new EmptyBorder(20, 10, 0, 0)); // Top 20, Left 10
-
-        CalendarView calendarView = new CalendarView(dummySubjects, RightCalendarPanel, frame);
-
-        MidPanel.add(subjectsView, "SUBJECTS");
-        MidPanel.add(calendarView, "CALENDAR");
-        MidPanel.add(subjectDetailsView, "DETAILS");
-
-        // Left Panel Components
-        MyButton subject = new MyButton("Subjects");
-        MyButton calendar = new MyButton("Calendar");
-
-        Dimension leftBtnSize = new Dimension(LeftPanelWidth / 2, 40);
-        subject.setMinimumSize(leftBtnSize);
-        subject.setMaximumSize(leftBtnSize);
-        subject.setPreferredSize(leftBtnSize);
-        subject.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        calendar.setMinimumSize(leftBtnSize);
-        calendar.setMaximumSize(leftBtnSize);
-        calendar.setPreferredSize(leftBtnSize);
-        calendar.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        subject.setActive(true); // Default active page
-
-        // Left Panel Components Actions
-        subject.addActionListener(e -> {
-            cardLayout.show(MidPanel, "SUBJECTS");
-            rightCardLayout.show(RightPanel, "DEFAULT");
-            subject.setActive(true);
-            calendar.setActive(false);
-        });
-        calendar.addActionListener(e -> {
-            cardLayout.show(MidPanel, "CALENDAR");
-            rightCardLayout.show(RightPanel, "CALENDAR");
-            calendar.setActive(true);
-            subject.setActive(false);
-        });
-
-        LeftPanel.add(subject);
-        LeftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        LeftPanel.add(calendar);
-
-        // Right Panel Components (Default)
-        MyButton AddSubject = new MyButton("+ Add Subject");
-        AddSubject.setActive(true); // Dark style to match design
-
+        int RightPanelWidth = frame.getWidth() / 4;
         Dimension rightBtnSize = new Dimension((int) (RightPanelWidth * 0.6), 40);
+
+        MyButton AddSubject = new MyButton("+ Add Subject");
+        AddSubject.setActive(true);
         AddSubject.setMinimumSize(rightBtnSize);
         AddSubject.setMaximumSize(rightBtnSize);
         AddSubject.setPreferredSize(rightBtnSize);
         AddSubject.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         AddSubject.addActionListener(e -> {
             AddSubjectDialog dialog = new AddSubjectDialog(frame);
             dialog.setVisible(true);
             Subject created = dialog.getCreatedSubject();
             if (created != null) {
-                dummySubjects.add(created);
-                subjectsView.updateView();
+                currentUser.addSubject(created);
+                db.saveUser(currentUser); // Persist
+                ((SubjectsView) MidPanel.getComponent(0)).updateView(); // This is hacky, but works for now
             }
         });
-
         RightDefaultPanel.add(AddSubject);
 
-        // Right Panel Components (Subject)
         MyButton AddTask = new MyButton("+ Add Task");
         AddTask.setMinimumSize(rightBtnSize);
         AddTask.setMaximumSize(rightBtnSize);
         AddTask.setPreferredSize(rightBtnSize);
         AddTask.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         AddTask.addActionListener(e -> {
             Subject currentSubject = subjectDetailsView.getSubject();
             if (currentSubject != null) {
@@ -230,28 +237,63 @@ public class Main {
                 Task created = dialog.getCreatedTask();
                 if (created != null) {
                     currentSubject.addTask(created);
-                    subjectDetailsView.updateView(); // refresh tasks UI
+                    db.saveUser(currentUser); // Persist
+                    subjectDetailsView.updateView();
                 }
             }
         });
-
         RightSubjectPanel.add(AddTask);
+
+        SubjectsView subjectsView = new SubjectsView(currentUser.getSubjects(), (sub) -> {
+            subjectDetailsView.setSubject(sub);
+            midCardLayout.show(MidPanel, "DETAILS");
+            rightCardLayout.show(RightPanel, "SUBJECT");
+        }, () -> {
+            db.saveUser(currentUser);
+            frame.repaint();
+        });
+
+        JPanel RightCalendarPanel = new JPanel();
+        RightCalendarPanel.setLayout(new BoxLayout(RightCalendarPanel, BoxLayout.Y_AXIS));
+        RightCalendarPanel.setBackground(Color.decode("#e9e9e9"));
+        RightCalendarPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
+        CalendarView calendarView = new CalendarView(currentUser.getSubjects(), RightCalendarPanel, frame);
+
+        MidPanel.add(subjectsView, "SUBJECTS");
+        MidPanel.add(calendarView, "CALENDAR");
+        MidPanel.add(subjectDetailsView, "DETAILS");
 
         RightPanel.add(RightDefaultPanel, "DEFAULT");
         RightPanel.add(RightSubjectPanel, "SUBJECT");
         RightPanel.add(RightCalendarPanel, "CALENDAR");
 
-        // Header.setBorder(BorderFactory.createLineBorder(Color.black, 2));
-        // LeftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        // MidPanel.setBorder(BorderFactory.createLineBorder(Color.red, 2));
-        // RightPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+        subjectBtn.addActionListener(e -> {
+            midCardLayout.show(MidPanel, "SUBJECTS");
+            rightCardLayout.show(RightPanel, "DEFAULT");
+            subjectBtn.setActive(true);
+            calendarBtn.setActive(false);
+        });
 
-        // Add panels to the frame
-        frame.add(Header, BorderLayout.NORTH);
-        frame.add(LeftPanel, BorderLayout.WEST);
-        frame.add(MidPanel, BorderLayout.CENTER);
-        frame.add(RightPanel, BorderLayout.EAST);
+        calendarBtn.addActionListener(e -> {
+            midCardLayout.show(MidPanel, "CALENDAR");
+            rightCardLayout.show(RightPanel, "CALENDAR");
+            calendarBtn.setActive(true);
+            subjectBtn.setActive(false);
+        });
 
-        frame.setVisible(true);
+        logoutBtn.addActionListener(e -> {
+            currentUser = null;
+            showAuthView();
+        });
+
+        LeftPanel.revalidate();
+        LeftPanel.repaint();
+        MidPanel.revalidate();
+        MidPanel.repaint();
+        RightPanel.revalidate();
+        RightPanel.repaint();
+
+        midCardLayout.show(MidPanel, "SUBJECTS");
+        rightCardLayout.show(RightPanel, "DEFAULT");
     }
 }
