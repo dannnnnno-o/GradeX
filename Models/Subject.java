@@ -84,4 +84,39 @@ public class Subject {
         }
         return sum == 100;
     }
+
+    public String calculateProjectedGrade() {
+        if (!isRubricComplete()) return "N/A";
+        
+        double totalWeightedPercentage = 0;
+        TaskType[] types = TaskType.values();
+        int completedWeightsSum = 0;
+
+        for (int i = 0; i < types.length; i++) {
+            ArrayList<Task> tasksOfType = getTasksByType(types[i]);
+            double typeScoreSum = 0;
+            double typeMaxScoreSum = 0;
+            boolean hasCompleted = false;
+            
+            for (Task t : tasksOfType) {
+                if (t instanceof CompletedTask) {
+                    typeScoreSum += t.getScore();
+                    typeMaxScoreSum += t.getMaxScore();
+                    hasCompleted = true;
+                }
+            }
+            
+            if (hasCompleted && typeMaxScoreSum > 0) {
+                double typePercentage = (typeScoreSum / typeMaxScoreSum);
+                totalWeightedPercentage += typePercentage * rubrics[i];
+                completedWeightsSum += rubrics[i];
+            }
+        }
+        
+        if (completedWeightsSum == 0) return "5.00"; // No tasks completed yet
+        
+        // Scale to 100% based on the categories that have tasks
+        double finalPercentage = (totalWeightedPercentage / completedWeightsSum) * 100;
+        return Task.convertTo11Point(finalPercentage);
+    }
 }

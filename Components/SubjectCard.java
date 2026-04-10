@@ -63,7 +63,7 @@ public class SubjectCard extends JPanel {
         content.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // 2. Grade
-        JLabel gradeLabel = new JLabel("Grade: " + String.format("%.2f", subject.getGrade()));
+        JLabel gradeLabel = new JLabel("Grade: " + subject.calculateProjectedGrade());
         gradeLabel.setFont(new Font("Raleway", Font.PLAIN, 13));
         gradeLabel.setForeground(Color.DARK_GRAY);
         gradeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);

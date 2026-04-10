@@ -288,6 +288,14 @@ public class SubjectDetailsView extends JPanel {
 
         titleLabel.setText(currentSubject.getName());
 
+        if (currentSubject.isRubricComplete()) {
+            statusLabel.setText("Projected Grade: " + currentSubject.calculateProjectedGrade());
+            statusLabel.setForeground(Color.decode("#27ae60"));
+        } else {
+            statusLabel.setText("Incomplete rubrics - Grade calculation paused");
+            statusLabel.setForeground(Color.decode("#f08080"));
+        }
+
         rubricsPanel.removeAll();
         int[] rubrics = currentSubject.getRubrics();
         TaskType[] types = TaskType.values();
@@ -454,7 +462,8 @@ public class SubjectDetailsView extends JPanel {
         leftPanel.add(Box.createVerticalStrut(5));
 
         if (task instanceof CompletedTask) {
-            JLabel scoreLbl = new JLabel("Grade: " + String.format("%.2f", task.getScore()));
+            double percentage = (task.getScore() / task.getMaxScore()) * 100;
+            JLabel scoreLbl = new JLabel("Grade: " + Task.convertTo11Point(percentage));
             scoreLbl.setFont(new Font("Raleway", Font.PLAIN, 14));
             scoreLbl.setForeground(Color.DARK_GRAY);
             scoreLbl.setAlignmentX(Component.LEFT_ALIGNMENT);

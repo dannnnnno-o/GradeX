@@ -62,4 +62,19 @@ public abstract class Task {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public static String convertTo11Point(double percentage) {
+        int p = (int) Math.round(percentage);
+        if (p >= 99) return "1.00";
+        if (p >= 96) return "1.25";
+        if (p >= 93) return "1.50";
+        if (p >= 90) return "1.75";
+        if (p >= 87) return "2.00";
+        if (p >= 84) return "2.25";
+        if (p >= 81) return "2.50";
+        if (p >= 78) return "2.75";
+        if (p >= 75) return "3.00";
+        if (p >= 60) return "4.00";
+        return "5.00";
+    }
 }
