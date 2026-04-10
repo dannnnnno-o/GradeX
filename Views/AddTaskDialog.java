@@ -25,6 +25,7 @@ public class AddTaskDialog extends JDialog {
     // Completed fields
     private JTextField doneScoreField;
     private JTextField doneMaxScoreField;
+    private ScrollablePanel contentPanel;
 
     class RoundedField extends JTextField {
         private int radius;
@@ -103,7 +104,8 @@ public class AddTaskDialog extends JDialog {
             setLayout(new BorderLayout());
             setOpaque(false);
             setBackground(Color.decode("#eeeeee"));
-            setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 10));
+            setBorder(BorderFactory.createEmptyBorder(2, 15, 2, 10));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
             add(c, BorderLayout.CENTER);
             
             JLabel arrow = new JLabel("v");
@@ -120,57 +122,77 @@ public class AddTaskDialog extends JDialog {
         }
     }
 
+    class ScrollablePanel extends JPanel implements Scrollable {
+        public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) { return 16; }
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) { return 40; }
+        public boolean getScrollableTracksViewportWidth() { return true; }
+        public boolean getScrollableTracksViewportHeight() { return false; }
+    }
+
     public AddTaskDialog(JFrame parent, Subject subject) {
         super(parent, "Add New Task", true);
-        setSize(480, 680);
+        setSize(480, 650);
         setLocationRelativeTo(parent);
         setResizable(false);
         
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBackground(Color.WHITE);
-        mainPanel.setBorder(new EmptyBorder(30, 45, 30, 45));
+        contentPanel = new ScrollablePanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(new EmptyBorder(30, 45, 10, 45));
         
         JLabel titleLabel = new JLabel("Add New Task");
         titleLabel.setFont(new Font("Raleway", Font.BOLD, 22));
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(titleLabel);
-        mainPanel.add(Box.createVerticalStrut(15));
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createVerticalStrut(15));
         
         // Task Status
-        mainPanel.add(createHeaderLabel("Task Status"));
+        contentPanel.add(createHeaderLabel("Task Status"));
         statusDropdown = createCleanCombo(new String[]{"Pending", "Completed"});
         RoundedWrapper statusWrapper = new RoundedWrapper(20, statusDropdown);
         statusWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(statusWrapper);
-        mainPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(statusWrapper);
+        contentPanel.add(Box.createVerticalStrut(10));
         
         // Task Type
-        mainPanel.add(createHeaderLabel("Task Type"));
+        contentPanel.add(createHeaderLabel("Task Type"));
         typeDropdown = createCleanCombo(TaskType.values());
         RoundedWrapper typeWrapper = new RoundedWrapper(20, typeDropdown);
         typeWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(typeWrapper);
-        mainPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(typeWrapper);
+        contentPanel.add(Box.createVerticalStrut(10));
         
         // Task Name
-        mainPanel.add(createHeaderLabel("Task Name"));
+        contentPanel.add(createHeaderLabel("Task Name"));
         nameField = new RoundedField(20, "e.g.: Midterm Exam");
         nameField.setFont(new Font("Raleway", Font.PLAIN, 14));
-        nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         nameField.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(nameField);
-        mainPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(nameField);
+        contentPanel.add(Box.createVerticalStrut(10));
         
         // Description
-        mainPanel.add(createHeaderLabel("Description"));
+        contentPanel.add(createHeaderLabel("Description"));
         descArea = new RoundedArea(20, "Task details...");
         descArea.setFont(new Font("Raleway", Font.PLAIN, 14));
-        descArea.setPreferredSize(new Dimension(Integer.MAX_VALUE, 60));
-        descArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
         descArea.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(descArea);
-        mainPanel.add(Box.createVerticalStrut(10));
+        
+        descArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { updateHeight(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { updateHeight(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { updateHeight(); }
+            private void updateHeight() {
+                try {
+                    int lineCount = descArea.getLineCount();
+                    int newHeight = Math.max(40, Math.min(200, (lineCount * 20) + 20));
+                    descArea.setPreferredSize(new Dimension(descArea.getWidth(), newHeight));
+                    contentPanel.revalidate();
+                } catch (Exception ex) {}
+            }
+        });
+        
+        contentPanel.add(descArea);
+        contentPanel.add(Box.createVerticalStrut(10));
         
         // Dynamic Panel
         dynamicCardLayout = new CardLayout();
@@ -188,7 +210,6 @@ public class AddTaskDialog extends JDialog {
         pendingMaxScoreField = new RoundedField(20, "100");
         pendingMaxScoreField.setText("100");
         pendingMaxScoreField.setForeground(Color.BLACK);
-        pendingMaxScoreField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         pendingMaxScoreField.setAlignmentX(Component.LEFT_ALIGNMENT);
         pendingPanel.add(pendingMaxScoreField);
         pendingPanel.add(Box.createVerticalStrut(10));
@@ -197,7 +218,6 @@ public class AddTaskDialog extends JDialog {
         pendingDeadlineField = new RoundedField(20, "mm/dd/yyyy");
         pendingDeadlineField.setText(LocalDate.now().plusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy")));
         pendingDeadlineField.setForeground(Color.BLACK);
-        pendingDeadlineField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         pendingDeadlineField.setAlignmentX(Component.LEFT_ALIGNMENT);
         pendingPanel.add(pendingDeadlineField);
         
@@ -211,11 +231,13 @@ public class AddTaskDialog extends JDialog {
         scoreCol.setLayout(new BoxLayout(scoreCol, BoxLayout.Y_AXIS));
         scoreCol.setOpaque(false);
         scoreCol.setAlignmentX(Component.LEFT_ALIGNMENT);
+        scoreCol.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
         scoreCol.add(createHeaderLabel("Score"));
         doneScoreField = new RoundedField(20, "0");
         doneScoreField.setText("0");
         doneScoreField.setForeground(Color.BLACK);
         doneScoreField.setPreferredSize(new Dimension(0, 40));
+        doneScoreField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         doneScoreField.setAlignmentX(Component.LEFT_ALIGNMENT);
         scoreCol.add(doneScoreField);
         
@@ -223,11 +245,13 @@ public class AddTaskDialog extends JDialog {
         maxScoreCol.setLayout(new BoxLayout(maxScoreCol, BoxLayout.Y_AXIS));
         maxScoreCol.setOpaque(false);
         maxScoreCol.setAlignmentX(Component.LEFT_ALIGNMENT);
+        maxScoreCol.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
         maxScoreCol.add(createHeaderLabel("Max Score"));
         doneMaxScoreField = new RoundedField(20, "100");
         doneMaxScoreField.setText("100");
         doneMaxScoreField.setForeground(Color.BLACK);
         doneMaxScoreField.setPreferredSize(new Dimension(0, 40));
+        doneMaxScoreField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         doneMaxScoreField.setAlignmentX(Component.LEFT_ALIGNMENT);
         maxScoreCol.add(doneMaxScoreField);
         
@@ -237,19 +261,32 @@ public class AddTaskDialog extends JDialog {
         dynamicPanel.add(pendingPanel, "Pending");
         dynamicPanel.add(completedPanel, "Completed");
         
-        mainPanel.add(dynamicPanel);
-        mainPanel.add(Box.createVerticalGlue());
+        contentPanel.add(dynamicPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getViewport().setBackground(Color.WHITE);
         
         statusDropdown.addActionListener(e -> {
             String selected = (String) statusDropdown.getSelectedItem();
             dynamicCardLayout.show(dynamicPanel, selected);
+            if ("Pending".equals(selected)) {
+                setSize(480, 650);
+            } else {
+                setSize(480, 560);
+            }
+            revalidate();
+            repaint();
         });
         
-        // Add Button Centered Wrapper
         JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnWrapper.setOpaque(false);
-        btnWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        btnWrapper.setBackground(Color.WHITE);
+        btnWrapper.setBorder(new EmptyBorder(0, 0, 25, 0));
         
         JButton addButton = new JButton("Add Task") {
             @Override protected void paintComponent(Graphics g) {
@@ -268,12 +305,15 @@ public class AddTaskDialog extends JDialog {
         addButton.setBorderPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         addButton.setPreferredSize(new Dimension(280, 45));
-        
         addButton.addActionListener(e -> attemptAddTask());
         
         btnWrapper.add(addButton);
-        mainPanel.add(btnWrapper);
-        add(mainPanel);
+        
+        JPanel mainBoard = new JPanel(new BorderLayout());
+        mainBoard.setBackground(Color.WHITE);
+        mainBoard.add(scrollPane, BorderLayout.CENTER);
+        mainBoard.add(btnWrapper, BorderLayout.SOUTH);
+        add(mainBoard);
     }
 
     private JLabel createHeaderLabel(String text) {
@@ -290,6 +330,20 @@ public class AddTaskDialog extends JDialog {
         combo.setBackground(Color.decode("#eeeeee"));
         combo.setBorder(null);
         combo.setFocusable(false);
+        
+        // Hide default arrow button
+        combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                JButton b = new JButton();
+                b.setBorder(null);
+                b.setContentAreaFilled(false);
+                b.setPreferredSize(new Dimension(0, 0));
+                b.setMaximumSize(new Dimension(0, 0));
+                return b;
+            }
+        });
+        
         combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         combo.setAlignmentX(Component.LEFT_ALIGNMENT);
         return combo;

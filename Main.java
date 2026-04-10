@@ -234,6 +234,7 @@ public class Main {
         RightDefaultPanel.add(AddSubject);
 
         MyButton AddTask = new MyButton("+ Add Task");
+        AddTask.setActive(true);
         AddTask.setMinimumSize(rightBtnSize);
         AddTask.setMaximumSize(rightBtnSize);
         AddTask.setPreferredSize(rightBtnSize);
