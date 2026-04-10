@@ -338,13 +338,14 @@ public class SubjectDetailsView extends JPanel {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setOpaque(false);
 
-        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         topRow.setOpaque(false);
         topRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel nameLbl = new JLabel(task.getName());
         nameLbl.setFont(new Font("Raleway", Font.BOLD, 18));
         topRow.add(nameLbl);
+        topRow.add(Box.createHorizontalStrut(10)); // Add gap between name and pill instead
 
         if (task instanceof CompletedTask) {
             JLabel pill = new JLabel("Completed");
