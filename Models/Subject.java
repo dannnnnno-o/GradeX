@@ -75,4 +75,13 @@ public class Subject {
         }
         return count;
     }
+
+    public boolean isRubricComplete() {
+        if (rubrics == null) return false;
+        int sum = 0;
+        for (int weight : rubrics) {
+            sum += weight;
+        }
+        return sum == 100;
+    }
 }

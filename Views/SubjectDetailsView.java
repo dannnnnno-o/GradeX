@@ -17,6 +17,11 @@ public class SubjectDetailsView extends JPanel {
     private String currentFilter = "All Tasks";
     private JPanel filterPanel;
     private Runnable onDataChanged;
+    private Runnable onBack;
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+    }
 
     class RoundedPanel extends JPanel {
         private int radius;
@@ -111,6 +116,22 @@ public class SubjectDetailsView extends JPanel {
         mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
         mainContent.setBackground(Color.decode("#e9e9e9"));
         mainContent.setBorder(new EmptyBorder(30, 40, 30, 40));
+
+        // Back Button
+        JButton backBtn = new JButton("\u2190 Back to Subjects");
+        backBtn.setFont(new Font("Raleway", Font.BOLD, 14));
+        backBtn.setForeground(Color.GRAY);
+        backBtn.setFocusPainted(false);
+        backBtn.setContentAreaFilled(false);
+        backBtn.setBorderPainted(false);
+        backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        backBtn.addActionListener(e -> {
+            if (onBack != null) onBack.run();
+        });
+
+        mainContent.add(backBtn);
+        mainContent.add(Box.createVerticalStrut(10));
 
         titleLabel = new JLabel("Select a subject");
         titleLabel.setFont(new Font("Raleway", Font.BOLD, 36));

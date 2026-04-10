@@ -71,20 +71,21 @@ public class SubjectCard extends JPanel {
 
         content.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        // 3. Rubrics Status (Mockup specifically has this)
-        JLabel incompleteLbl = new JLabel("Incomplete rubrics");
-        incompleteLbl.setFont(new Font("Raleway", Font.PLAIN, 13));
-        incompleteLbl.setForeground(Color.decode("#e87373"));
-        incompleteLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // 3. Rubrics Status
+        boolean isComplete = subject.isRubricComplete();
+        JLabel statusLbl = new JLabel(isComplete ? "Complete rubrics" : "Incomplete rubrics");
+        statusLbl.setFont(new Font("Raleway", Font.PLAIN, 13));
+        statusLbl.setForeground(isComplete ? Color.decode("#27ae60") : Color.decode("#e87373"));
+        statusLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel pausedLbl = new JLabel("Grade calculation paused");
-        pausedLbl.setFont(new Font("Raleway", Font.PLAIN, 11));
-        pausedLbl.setForeground(Color.GRAY);
-        pausedLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel subStatusLbl = new JLabel(isComplete ? "Calculation active" : "Grade calculation paused");
+        subStatusLbl.setFont(new Font("Raleway", Font.PLAIN, 11));
+        subStatusLbl.setForeground(Color.GRAY);
+        subStatusLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        content.add(incompleteLbl);
+        content.add(statusLbl);
         content.add(Box.createRigidArea(new Dimension(0, 2)));
-        content.add(pausedLbl);
+        content.add(subStatusLbl);
 
         content.add(Box.createRigidArea(new Dimension(0, 20)));
 

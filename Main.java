@@ -203,6 +203,8 @@ public class Main {
         RightSubjectPanel.setBackground(Color.decode("#e9e9e9"));
         RightSubjectPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
 
+        final SubjectsView[] subjectsViewRef = new SubjectsView[1];
+
         int RightPanelWidth = frame.getWidth() / 4;
         Dimension rightBtnSize = new Dimension((int) (RightPanelWidth * 0.6), 40);
 
@@ -218,8 +220,8 @@ public class Main {
             Subject created = dialog.getCreatedSubject();
             if (created != null) {
                 currentUser.addSubject(created);
-                db.saveUser(currentUser); // Persist
-                ((SubjectsView) MidPanel.getComponent(0)).updateView(); // This is hacky, but works for now
+                db.saveUser(currentUser);
+                if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
             }
         });
         RightDefaultPanel.add(AddSubject);
@@ -237,21 +239,40 @@ public class Main {
                 Task created = dialog.getCreatedTask();
                 if (created != null) {
                     currentSubject.addTask(created);
-                    db.saveUser(currentUser); // Persist
+                    db.saveUser(currentUser);
                     subjectDetailsView.updateView();
+                    if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
                 }
             }
         });
         RightSubjectPanel.add(AddTask);
 
-        SubjectsView subjectsView = new SubjectsView(currentUser.getSubjects(), (sub) -> {
+        subjectsViewRef[0] = new SubjectsView(currentUser.getSubjects(), (sub) -> {
             subjectDetailsView.setSubject(sub);
             midCardLayout.show(MidPanel, "DETAILS");
             rightCardLayout.show(RightPanel, "SUBJECT");
+            subjectBtn.setActive(false); // Remove highlight when inside details
         }, () -> {
             db.saveUser(currentUser);
+            if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
             frame.repaint();
         });
+
+        subjectDetailsView.setOnDataChanged(() -> {
+            db.saveUser(currentUser);
+            if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
+            frame.repaint();
+        });
+
+        subjectDetailsView.setOnBack(() -> {
+            midCardLayout.show(MidPanel, "SUBJECTS");
+            rightCardLayout.show(RightPanel, "DEFAULT");
+            subjectBtn.setActive(true);
+            calendarBtn.setActive(false);
+            if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
+        });
+
+        SubjectsView subjectsView = subjectsViewRef[0];
 
         JPanel RightCalendarPanel = new JPanel();
         RightCalendarPanel.setLayout(new BoxLayout(RightCalendarPanel, BoxLayout.Y_AXIS));
@@ -272,6 +293,7 @@ public class Main {
             rightCardLayout.show(RightPanel, "DEFAULT");
             subjectBtn.setActive(true);
             calendarBtn.setActive(false);
+            if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
         });
 
         calendarBtn.addActionListener(e -> {
