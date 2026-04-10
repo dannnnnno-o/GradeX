@@ -146,6 +146,10 @@ public class CalendarView extends JPanel {
 
         rightCalendarPanel.add(rightWrapper);
 
+        updateView();
+    }
+
+    public void updateView() {
         updateCalendar();
         showTasksForDate(selectedDate);
     }

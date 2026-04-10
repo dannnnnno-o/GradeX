@@ -203,6 +203,13 @@ public class Main {
         RightSubjectPanel.setBackground(Color.decode("#e9e9e9"));
         RightSubjectPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
 
+        // Right Panel - Calendar View
+        JPanel RightCalendarPanel = new JPanel();
+        RightCalendarPanel.setLayout(new BoxLayout(RightCalendarPanel, BoxLayout.Y_AXIS));
+        RightCalendarPanel.setBackground(Color.decode("#e9e9e9"));
+        RightCalendarPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
+        CalendarView calendarView = new CalendarView(currentUser.getSubjects(), RightCalendarPanel, frame);
+
         final SubjectsView[] subjectsViewRef = new SubjectsView[1];
 
         int RightPanelWidth = frame.getWidth() / 4;
@@ -255,12 +262,14 @@ public class Main {
         }, () -> {
             db.saveUser(currentUser);
             if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
+            calendarView.updateView();
             frame.repaint();
         });
 
         subjectDetailsView.setOnDataChanged(() -> {
             db.saveUser(currentUser);
             if (subjectsViewRef[0] != null) subjectsViewRef[0].updateView();
+            calendarView.updateView();
             frame.repaint();
         });
 
@@ -273,12 +282,6 @@ public class Main {
         });
 
         SubjectsView subjectsView = subjectsViewRef[0];
-
-        JPanel RightCalendarPanel = new JPanel();
-        RightCalendarPanel.setLayout(new BoxLayout(RightCalendarPanel, BoxLayout.Y_AXIS));
-        RightCalendarPanel.setBackground(Color.decode("#e9e9e9"));
-        RightCalendarPanel.setBorder(new EmptyBorder(20, 10, 0, 0));
-        CalendarView calendarView = new CalendarView(currentUser.getSubjects(), RightCalendarPanel, frame);
 
         MidPanel.add(subjectsView, "SUBJECTS");
         MidPanel.add(calendarView, "CALENDAR");
@@ -301,6 +304,7 @@ public class Main {
             rightCardLayout.show(RightPanel, "CALENDAR");
             calendarBtn.setActive(true);
             subjectBtn.setActive(false);
+            calendarView.updateView();
         });
 
         logoutBtn.addActionListener(e -> {
