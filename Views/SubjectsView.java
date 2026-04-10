@@ -76,6 +76,8 @@ public class SubjectsView extends JPanel {
         JScrollPane scrollPane = new JScrollPane(scrollContent);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUI(new Components.ModernScrollBarUI());
+        scrollPane.getHorizontalScrollBar().setUI(new Components.ModernScrollBarUI());
         add(scrollPane, BorderLayout.CENTER);
 
         updateView();

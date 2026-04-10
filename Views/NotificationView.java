@@ -61,6 +61,8 @@ public class NotificationView extends JPanel {
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.getVerticalScrollBar().setUI(new Components.ModernScrollBarUI());
+        scroll.getHorizontalScrollBar().setUI(new Components.ModernScrollBarUI());
         add(scroll, BorderLayout.CENTER);
 
         updateView();

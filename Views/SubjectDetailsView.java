@@ -251,6 +251,8 @@ public class SubjectDetailsView extends JPanel {
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(Color.decode("#e9e9e9"));
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUI(new Components.ModernScrollBarUI());
+        scrollPane.getHorizontalScrollBar().setUI(new Components.ModernScrollBarUI());
 
         add(scrollPane, BorderLayout.CENTER);
     }

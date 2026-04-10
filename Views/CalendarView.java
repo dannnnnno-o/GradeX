@@ -137,6 +137,8 @@ public class CalendarView extends JPanel {
         taskScroll.setBorder(null);
         taskScroll.setOpaque(false);
         taskScroll.getViewport().setOpaque(false);
+        taskScroll.getVerticalScrollBar().setUI(new Components.ModernScrollBarUI());
+        taskScroll.getHorizontalScrollBar().setUI(new Components.ModernScrollBarUI());
         taskRightBox.add(taskScroll, BorderLayout.CENTER);
 
         JPanel rightWrapper = new JPanel(new BorderLayout());
