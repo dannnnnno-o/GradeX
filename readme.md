@@ -5,5 +5,5 @@ In GradeX, you can manage your academic workload by keeping track of your subjec
 `javac -cp .;postgresql-42.7.10.jar *.java Components/*.java Models/*.java Views/*.java`
 
 # Run
-'java -cp .;postgresql-42.7.10.jar Main'
+`java -cp .;postgresql-42.7.10.jar Main`
 
